@@ -1,2 +1,1 @@
-Folders go into:
-/home/$USER/.config/
+/home/$USER/.config/perappfolders
