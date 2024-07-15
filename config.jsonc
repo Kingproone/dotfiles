@@ -1,0 +1,79 @@
+// Load with --load-config examples/2.jsonc
+// Note that you must replace the image path to an existing image to display it.
+
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo":{},
+    "display": {
+        "separator": " "
+    },
+    "modules": [
+        {
+            "type": "host",
+            "key": "╭─ System ─╮",
+            "keyColor": "blue"
+        },
+        {
+            "type": "uptime",
+            "key": "├─ Uptime ─┤",
+            "keyColor": "blue"
+        },
+        {
+            "type": "cpu",
+            "temp": true,
+            "key": "├─ CPU ────┤",
+            "keyColor": "blue"
+        },
+        {
+            "type": "gpu",
+            "temp": true,
+            "key": "├─ GPU ────┤",
+            "keyColor": "blue"
+        },
+        {
+            "type": "memory",
+            "type": "swap",
+            "key": "├─ RAM ────┤",
+            "keyColor": "blue"
+        },
+        {
+            "type": "swap",
+            "key": "╰─ Swap ───╯",
+            "keyColor": "blue"
+        },
+        "break",
+
+        {
+            "type": "kernel",
+            "key": "╭─ Kernel ───╮",
+            "format": "{1} {2}",
+            "keyColor": "green"
+        },
+        {
+            "type": "shell",
+            "key": "├─ Shell ────┤",
+            "keyColor": "green"
+        },
+        {
+            "type": "terminal",
+            "key": "├─ Terminal ─┤",
+            "keyColor": "green"
+        },
+        {
+            "type": "de",
+            "key": "├─ Desktop ──┤",
+            "keyColor": "green"
+        },
+        {
+            "type": "packages",
+            "key": "╰─ Packages ─╯",
+            "keyColor": "green"
+        },
+        "break",
+        {
+            "type": "weather",
+            "key": " ☀️ Weather 🌥 ",
+            "keyColor": "white"
+        },
+    ]
+}
