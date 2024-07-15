@@ -1,2 +1,2 @@
-# dotfiles
-My dotfiles.
+Folders go into:
+/home/$USER/.config/
