@@ -1,4 +1,3 @@
-// Load with --load-config examples/2.jsonc
 // Note that you must replace the image path to an existing image to display it.
 
 {
@@ -32,7 +31,6 @@
         },
         {
             "type": "memory",
-            "type": "swap",
             "key": "├─ RAM ────┤",
             "keyColor": "blue"
         },
@@ -47,27 +45,27 @@
             "type": "kernel",
             "key": "╭─ Kernel ───╮",
             "format": "{1} {2}",
-            "keyColor": "green"
+            "keyColor": "magenta"
         },
         {
             "type": "shell",
             "key": "├─ Shell ────┤",
-            "keyColor": "green"
+            "keyColor": "magenta"
         },
         {
             "type": "terminal",
             "key": "├─ Terminal ─┤",
-            "keyColor": "green"
+            "keyColor": "magenta"
         },
         {
             "type": "de",
             "key": "├─ Desktop ──┤",
-            "keyColor": "green"
+            "keyColor": "magenta"
         },
         {
             "type": "packages",
             "key": "╰─ Packages ─╯",
-            "keyColor": "green"
+            "keyColor": "magenta"
         },
         "break",
         {
