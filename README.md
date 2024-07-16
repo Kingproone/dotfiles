@@ -1,4 +1,4 @@
-/home/$USER/.config/perappfolders
+/home/$USER/
 
 # References
 
