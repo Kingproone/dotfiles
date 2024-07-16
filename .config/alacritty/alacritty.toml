@@ -23,6 +23,7 @@ padding.y = 2
 style = { shape= "Beam", blinking = "on" }
 thickness = 0.2
 blink_interval = 600 #ms
+blink_timeout = 0
 unfocused_hollow = false
 
 [scrolling]
