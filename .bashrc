@@ -83,7 +83,7 @@ _open_files_for_editing() {
 fastfetch
 alias we='curl wttr.in'
 alias x='exit'
-alias r='reboot'
-alias p='poweroff'
+alias re='reboot'
+alias po='poweroff'
 
 ################################################################################
