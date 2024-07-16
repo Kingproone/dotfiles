@@ -13,34 +13,40 @@
         {
             "type": "host",
             "key": "╭─ System ─╮",
-            "keyColor": "blue"
+            "keyColor": "magenta"
+        },
+        {
+            "type": "command",
+            "key": "├─ OS Age ─┤",
+            "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days",
+            "keyColor": "magenta"
         },
         {
             "type": "uptime",
             "key": "├─ Uptime ─┤",
-            "keyColor": "blue"
+            "keyColor": "magenta"
         },
         {
             "type": "cpu",
             "temp": true,
             "key": "├─ CPU ────┤",
-            "keyColor": "blue"
+            "keyColor": "magenta"
         },
         {
             "type": "gpu",
             "temp": true,
             "key": "├─ GPU ────┤",
-            "keyColor": "blue"
+            "keyColor": "magenta"
         },
         {
             "type": "memory",
             "key": "├─ RAM ────┤",
-            "keyColor": "blue"
+            "keyColor": "magenta"
         },
         {
             "type": "swap",
             "key": "╰─ Swap ───╯",
-            "keyColor": "blue"
+            "keyColor": "magenta"
         },
         "break",
 
