@@ -82,6 +82,7 @@ _open_files_for_editing() {
 ##
 fastfetch
 alias we='curl wttr.in'
+alias x='exit'
 # alias ef='_open_files_for_editing'     # 'ef' opens given file(s) for editing
 # alias pacdiff=eos-pacdiff
 ################################################################################
