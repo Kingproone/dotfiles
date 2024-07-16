@@ -34,6 +34,7 @@
         },
         {
             "type": "gpu",
+            "detectionmethod": "pci",
             "temp": true,
             "key": "├─ GPU ────┤",
             "keyColor": "blue"
