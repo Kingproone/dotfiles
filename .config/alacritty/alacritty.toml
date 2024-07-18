@@ -1,4 +1,4 @@
-live_config_reload = true
+      live_config_reload = true
 working_directory = "None"
 
 import = [
@@ -28,7 +28,7 @@ unfocused_hollow = false
 
 [scrolling]
 history = 2500
-multiplier =5
+multiplier = 10
 
 [env]
 TERM = "xterm-256color"
