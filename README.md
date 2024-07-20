@@ -1,5 +1,3 @@
-/home/$USER/
-
 # References
 
 Alacritty <br />
