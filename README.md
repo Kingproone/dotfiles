@@ -13,6 +13,7 @@ https://www.asciiart.eu/ <br />
 
 Bash <br />
 Adding a command you want to run on bash startup to the aliases section is enough. <br />
+https://unix.stackexchange.com/questions/100959/how-can-i-change-my-bash-prompt-to-show-my-working-directory <br />
 
 Grub <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
