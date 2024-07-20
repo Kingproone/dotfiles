@@ -30,11 +30,6 @@ ShowInstallerIsoInfo() {
     fi
 }
 
-
-alias ls='ls --color=auto'
-alias ll='ls -lav --ignore=..'   # show long listing of all except ".."
-alias l='ls -lav --ignore=.?*'   # show long listing but no hidden dotfiles except "."
-
 [[ "$(whoami)" = "root" ]] && return
 
 [[ -z "$FUNCNEST" ]] && export FUNCNEST=100          # limits recursive functions, see 'man bash'
@@ -77,11 +72,16 @@ _open_files_for_editing() {
 
 #------------------------------------------------------------
 
-## Aliases for the functions above.
-## Uncomment an alias if you want to use it.
+## Aliases #####################################################################
+## Add commands here if you want them to run when opening the terminal.
 
 fastfetch
+
+alias ls='ls --color=auto'
+alias ll='ls -lav --ignore=..'   # show long listing of all except ".."
+alias l='ls -lav --ignore=.?*'   # show long listing but no hidden dotfiles except "."
 alias we='curl wttr.in'
+alias c='clear'
 alias x='exit'
 alias re='reboot'
 alias po='poweroff'
