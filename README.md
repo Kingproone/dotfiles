@@ -8,6 +8,7 @@ Fastfetch <br />
 https://github.com/fastfetch-cli/fastfetch/wiki <br />
 https://github.com/fastfetch-cli/fastfetch/tree/dev/presets <br />
 https://github.com/ChrisTitusTech/mybash/blob/main/config.jsonc <br />
+https://github.com/fastfetch-cli/fastfetch/discussions/1040#discussioncomment-9866131 <br />
 https://www.asciiart.eu/ <br />
 
 Bash <br />
