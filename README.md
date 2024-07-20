@@ -1,4 +1,4 @@
-# References
+# Guides & References
 
 Alacritty <br />
 https://github.com/TwiggieSmallz/Default-Alacritty-TOML-Config/blob/main/alacritty.toml <br />
