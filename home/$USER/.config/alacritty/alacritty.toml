@@ -1,9 +1,9 @@
-      live_config_reload = true
+live_config_reload = true
 working_directory = "None"
 
+#Theme
 import = [
-#"~/.config/alacritty/nordic.toml",
-#"~/.config/alacritty/Mariana.toml",
+#"~/.config/alacritty/your-theme.toml",
 ]
 
 [colors]
