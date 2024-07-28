@@ -13,7 +13,8 @@ https://www.asciiart.eu/ <br />
 
 Bash <br />
 Adding a command you want to run on bash startup to the aliases section is enough. <br />
-Type 'bash' or '. ~/.bashrc' to reload new bashconfig without restarting terminal/ session. <br />
+Type `bash` or `. ~/.bashrc` to reload new bashconfig without restarting terminal/ session. <br />
+Tip: code segments use bactick (alt gr + 7): ` instead of apostrophe (shift + 1): ' <br />
 https://stackoverflow.com/questions/2518127/how-to-reload-bashrc-settings-without-logging-out-and-back-in-again
 https://unix.stackexchange.com/questions/100959/how-can-i-change-my-bash-prompt-to-show-my-working-directory <br />
 
