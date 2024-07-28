@@ -14,8 +14,10 @@ https://www.asciiart.eu/ <br />
 ### Bash <br />
 A command listed in .bashrc will run at terminal start. <br />
 Type `bash` or `. ~/.bashrc` to reload new bashconfig without restarting the terminal/ session. <br />
-https://stackoverflow.com/questions/2518127/how-to-reload-bashrc-settings-without-logging-out-and-back-in-again
+https://stackoverflow.com/questions/2518127/how-to-reload-bashrc-settings-without-logging-out-and-back-in-again <br />
 https://unix.stackexchange.com/questions/100959/how-can-i-change-my-bash-prompt-to-show-my-working-directory <br />
+
+https://superuser.com/questions/402246/bash-can-i-set-ctrl-backspace-to-delete-the-word-backward <br />
 
 ### Grub <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
