@@ -13,11 +13,14 @@ https://www.asciiart.eu/ <br />
 
 ### Bash <br />
 A command listed in .bashrc will run at terminal start. <br />
-Type `bash` or `. ~/.bashrc` to reload new bashconfig without restarting the terminal/ session. <br />
+https://www.cyberciti.biz/tips/howto-linux-unix-bash-shell-setup-prompt.html <br />
 https://stackoverflow.com/questions/2518127/how-to-reload-bashrc-settings-without-logging-out-and-back-in-again <br />
 https://unix.stackexchange.com/questions/100959/how-can-i-change-my-bash-prompt-to-show-my-working-directory <br />
-
+https://askubuntu.com/questions/1792/how-can-i-suspend-hibernate-from-command-line <br />
 https://superuser.com/questions/402246/bash-can-i-set-ctrl-backspace-to-delete-the-word-backward <br />
+https://github.com/ChrisTitusTech/mybash/blob/main/.bashrc <br />
+https://stackoverflow.com/questions/71459823/how-to-change-the-terminal-title-to-currently-running-process <br />
+https://colors.sh/ <br />
 
 ### Grub <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
