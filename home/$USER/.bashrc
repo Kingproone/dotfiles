@@ -51,7 +51,7 @@ fastfetch
 #################
 
 #PS1='$(whoami) @ $(pwd) $ ' # below with colors
-PS1='\[\e[95m\] $(whoami)\[\e[0m\] @\[\e[94m\] $(pwd) \[\e[0m\]$ '
+PS1='\[\e[95m\]$(whoami)\[\e[0m\] @\[\e[94m\] $(pwd) \[\e[0m\]$ '
 #_set_liveuser_PS1() {
 #PS1='$(whoami) @ $(pwd) $ '
 #}
