@@ -1,89 +1,88 @@
-#
-# ~/.bashrc
-#
+#############
+# ~/.bashrc #
+#############
 
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
-[[ -f ~/.welcome_screen ]] && . ~/.welcome_screen
+[[ -f ~/.welcome_screen ]] && . ~/.welcome_screen #was dis ???
 
-_set_liveuser_PS1() {
-    PS1='$(pwd)/ \$ '
-    if [ "$(whoami)" = "liveuser" ] ; then
-        local iso_version="$(grep ^VERSION= /usr/lib/endeavouros-release 2>/dev/null | cut -d '=' -f 2)"
-        if [ -n "$iso_version" ] ; then
-            local prefix="eos-"
-            local iso_info="$prefix$iso_version"
-            PS1="[\u@$iso_info \W]\$ "
-        fi
-    fi
-}
-_set_liveuser_PS1
-unset -f _set_liveuser_PS1
+############
+# Bindings #
+############
 
-ShowInstallerIsoInfo() {
-    local file=/usr/lib/endeavouros-release
-    if [ -r $file ] ; then
-        cat $file
-    else
-        echo "Sorry, installer ISO info is not available." >&2
-    fi
-}
-
-[[ "$(whoami)" = "root" ]] && return
-
-[[ -z "$FUNCNEST" ]] && export FUNCNEST=100          # limits recursive functions, see 'man bash'
-
-## Use the up and down arrow keys for finding a command in history
-## (you can write some initial letters of the command first).
+# Use the up and down arrow keys for finding a command in history
+# You can write some initial letters of the command first.
 bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
+bind '"\C-H":unix-word-rubout'   # ctrl + backspace deletes a word
+# ctrl + c to freeze a running program, ctrl + q to unfreeze
 
-################################################################################
-## Some generally useful functions.
-## Consider uncommenting aliases below to start using these functions.
-##
-## October 2021: removed many obsolete functions. If you still need them, please look at
-## https://github.com/EndeavourOS-archive/EndeavourOS-archiso/raw/master/airootfs/etc/skel/.bashrc
+###########
+# Exports #
+###########
 
-_open_files_for_editing() {
-    # Open any given document file(s) for editing (or just viewing).
-    # Note1:
-    #    - Do not use for executable files!
-    # Note2:
-    #    - Uses 'mime' bindings, so you may need to use
-    #      e.g. a file manager to make proper file bindings.
+# Expand the history size
+export HISTFILESIZE=10000
+export HISTSIZE=500
+export HISTTIMEFORMAT="%F %T " # add timestamp to history
 
-    if [ -x /usr/bin/exo-open ] ; then
-        echo "exo-open $@" >&2
-        setsid exo-open "$@" >& /dev/null
-        return
-    fi
-    if [ -x /usr/bin/xdg-open ] ; then
-        for file in "$@" ; do
-            echo "xdg-open $file" >&2
-            setsid xdg-open "$file" >& /dev/null
-        done
-        return
-    fi
+# set up XDG folders
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_CACHE_HOME="$HOME/.cache"
 
-    echo "$FUNCNAME: package 'xdg-utils' or 'exo' is required." >&2
-}
+# Ignore case on auto-completion
+# Note: bind used instead of sticking these in .inputrc
+if [[ $iatest -gt 0 ]]; then bind "set completion-ignore-case on"; fi
 
-#------------------------------------------------------------
+# Show auto-completion list automatically, without double tab
+if [[ $iatest -gt 0 ]]; then bind "set show-all-if-ambiguous On"; fi
 
-## Aliases #####################################################################
-## Add commands here if you want them to run when opening the terminal.
+###################
+# Autorun command #
+###################
 
 fastfetch
 
-alias ls='ls --color=auto'
+#################
+# Look and feel #
+#################
+
+#PS1='$(whoami) @ $(pwd) $ ' # below with colors
+PS1='\[\e[95m\] $(whoami)\[\e[0m\] @\[\e[94m\] $(pwd) \[\e[0m\]$ '
+#_set_liveuser_PS1() {
+#PS1='$(whoami) @ $(pwd) $ '
+#}
+#_set_liveuser_PS1
+#unset -f _set_liveuser_PS1
+
+# terminal title
+PROMPT_COMMAND='echo -en "\033]0;$(whoami) @ $(pwd) ~ - Alacritty"'
+trap 'echo -ne "\033]0;$(whoami) @ ${PWD} (${BASH_COMMAND}) - Alacritty\007"' DEBUG # when a command is running
+#hardcoded Alacritty as the teminal app name, eeh, can alwys rename
+
+[[ "$(whoami)" = "root" ]] && return          # was ist dis???
+
+[[ -z "$FUNCNEST" ]] && export FUNCNEST=100   # limits recursive functions, see 'man bash'
+
+###########
+# Aliases #
+###########
+
+# Run commands unaliased with a \
+
+alias ls='ls -a --color=auto'
 alias ll='ls -lav --ignore=..'   # show long listing of all except ".."
 alias l='ls -lav --ignore=.?*'   # show long listing but no hidden dotfiles except "."
-alias we='curl wttr.in'
+
 alias c='clear'
 alias x='exit'
+alias bash='source ~/.bashrc'    # refresh shell
+
 alias re='reboot'
 alias po='poweroff'
+alias zz='systemctl suspend'     # sleep
 
-################################################################################
+alias we='curl wttr.in'          # weather
