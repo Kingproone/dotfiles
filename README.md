@@ -20,7 +20,9 @@ https://askubuntu.com/questions/1792/how-can-i-suspend-hibernate-from-command-li
 https://superuser.com/questions/402246/bash-can-i-set-ctrl-backspace-to-delete-the-word-backward <br />
 https://github.com/ChrisTitusTech/mybash/blob/main/.bashrc <br />
 https://stackoverflow.com/questions/71459823/how-to-change-the-terminal-title-to-currently-running-process <br />
-https://colors.sh/ <br />
+https://misc.flogisoft.com/bash/tip_colors_and_formatting <br />
+https://medium.com/@adamtowers/how-to-customize-your-terminal-and-bash-profile-from-scratch-9ab079256380 <br />
+
 
 ### Grub <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
