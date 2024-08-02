@@ -16,7 +16,7 @@ title = "Alacritty"
 dynamic_title = true
 blur = true
 opacity = 0.9
-padding.x = 2
+padding.x = 5
 padding.y = 2
 
 [cursor]
