@@ -79,11 +79,11 @@
             "key": "╰─ Packages ─╯",
             "keyColor": "blue"
         },
-//Sometimes the weather check can take 5-10 seconds
         "break",
         {
             "type": "weather",
             "key": " ☀️ Weather 🌥 ",
+            "timeout": 3000,
             "keyColor": "white"
         },
     ]
