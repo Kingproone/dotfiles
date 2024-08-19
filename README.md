@@ -29,7 +29,8 @@ https://medium.com/@adamtowers/how-to-customize-your-terminal-and-bash-profile-f
 
 
 ### Grub <br />
-https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
+https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html <br />
+https://daulton.ca/2018/08/reboot-and-shutdown-options-grub/ <br />
 
 #### Github tips<br />
 Code segments use bactick (alt gr + 7): ` instead of apostrophe (shift + 1): ' <br />
