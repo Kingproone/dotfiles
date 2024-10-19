@@ -1,4 +1,4 @@
-# Previews
+# Preview
 
 ![Terminal](https://github.com/user-attachments/assets/b1aee0cb-02e9-4115-a4c5-9ba48f5b9573)
 
