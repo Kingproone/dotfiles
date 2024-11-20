@@ -3,7 +3,7 @@
     "logo": {
                 "type": "file",
                 "source": "~/.config/fastfetch/astronaut.txt",
-                "color": {"1": "white", "2": "magenta"}
+                "color": {"1": "magenta", "2": "white"}
             },
     "display": {
                     "separator": " "
