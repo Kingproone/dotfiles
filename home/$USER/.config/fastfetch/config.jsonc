@@ -3,12 +3,13 @@
     "logo": {
                 "type": "file",
                 "source": "~/.config/fastfetch/astronaut.txt",
-                "color": {"1": "magenta", "2": "white"}
+                "color": {"1": "magenta", "2": "white" }
             },
     "display": {
                     "separator": " "
                },
     "modules": [
+        "break",
         {
             "type": "host",
             "key": "╭─ System ─╮",
