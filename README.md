@@ -4,6 +4,12 @@
 
 # Guides & References
 
+## Gui kustomizations
+https://store.kde.org/p/1561335/ - willow dark decorations <br />
+https://github.com/matinlotfali/KDE-Rounded-Corners - rounded corners <br />
+https://github.com/vinceliuice/Tela-icon-theme - tela icons <br />
+https://github.com/vinceliuice/Qogir-icon-theme/tree/master/src/cursors/dist - qogir cursors <br />
+
 ### Alacritty <br />
 https://github.com/TwiggieSmallz/Default-Alacritty-TOML-Config/blob/main/alacritty.toml <br />
 https://github.com/alacritty/alacritty/pull/7231 <br />
