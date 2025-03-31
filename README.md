@@ -42,7 +42,10 @@ Generate font file:
 ```
 grub-mkfont --output=outfile.pf2 --size=16 infile.ttf
 ```
+https://www.artstation.com/artwork/oOYllO - background <br />
+https://www.gnome-look.org/p/1009236 - icons, edited a bit <br />
 https://wiki.archlinux.org/title/GRUB#Dual-booting <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html <br />
 https://daulton.ca/2018/08/reboot-and-shutdown-options-grub/ <br />
 https://askubuntu.com/questions/1513639/how-to-load-custom-fonts-in-a-grub-theme <br />
+os-prober and [grub customizer](https://github.com/muzena/grub-customizer) died for me<br />
