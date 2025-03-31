@@ -38,6 +38,10 @@ Regenerate ```grub.cfg``` with:
 ```
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 ```
+Generate font file:
+```
+grub-mkfont --output=outfile.pf2 --size=16 infile.ttf
+```
 https://wiki.archlinux.org/title/GRUB#Dual-booting <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html <br />
 https://daulton.ca/2018/08/reboot-and-shutdown-options-grub/ <br />
