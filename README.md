@@ -34,6 +34,7 @@ https://misc.flogisoft.com/bash/tip_colors_and_formatting <br />
 https://medium.com/@adamtowers/how-to-customize-your-terminal-and-bash-profile-from-scratch-9ab079256380 <br />
 
 ### Grub <br />
+https://wiki.archlinux.org/title/GRUB#Dual-booting <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html <br />
 https://daulton.ca/2018/08/reboot-and-shutdown-options-grub/ <br />
 https://askubuntu.com/questions/1513639/how-to-load-custom-fonts-in-a-grub-theme <br />
