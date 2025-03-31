@@ -1,0 +1,19 @@
+#!/bin/sh
+exec tail -n +3 $0
+# This file provides an easy way to add custom menu entries.  Simply type the
+# menu entries you want to add after this comment.  Be careful not to change
+# the 'exec tail' line above.
+
+if [ "${grub_platform}" == "pc" ]; then
+	menuentry 'Windows 10 IoT Enterprise LTSC' --class windows {
+		insmod part_msdos
+		insmod ntfs
+		insmod ntldr
+		search --no-floppy --fs-uuid --set=root --hint-bios=hd0,msdos1 --hint-efi=hd0,msdos1 --hint-baremetal=ahci0,msdos1 YOUR-WINDOWS-BOOT-UUID
+		ntldr /bootmgr
+	}
+fi
+
+menuentry 'Reboot' --class restart { reboot }
+
+menuentry 'Shut Down' --class shutdown { halt }
