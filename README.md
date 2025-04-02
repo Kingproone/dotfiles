@@ -1,10 +1,6 @@
-# Preview
-
-![terminal](https://github.com/user-attachments/assets/8dcb8f6d-e88f-4c86-a41c-aaf96db6d97d)
-
 # Guides & References
 
-## Gui kustomizations
+### Gui <br />
 https://store.kde.org/p/1561335/ - willow dark decorations <br />
 https://github.com/matinlotfali/KDE-Rounded-Corners - rounded corners <br />
 https://github.com/vinceliuice/Tela-icon-theme - tela icons <br />
