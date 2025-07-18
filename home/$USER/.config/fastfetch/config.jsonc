@@ -1,93 +1,133 @@
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "general": {
+                    "dsForceDrm": false     //check for wayland first in the wm module
+               },
     "logo": {
                 "type": "file",
                 "source": "~/.config/fastfetch/astronaut.txt",
                 "color": {"1": "magenta", "2": "white" }
             },
     "display": {
-                    "separator": " "
+                    "separator": " ",
+                    "fraction": {"ndigits":2},
+                    "temp": {"ndigits":2},
+                    "freq": {"ndigits":2},
+                    "percent": {"ndigits":2},
+                    "size":  {"ndigits":2}
                },
     "modules": [
         "break",
         {
+            "type": "disk",          // No longer need to write bash scripts
+            "key": "⚙️ System  ",
+            "folders": "/",          // Different OSes may need to specify different folders
+            "format": "{years} years and {days-of-year} days ({years-fraction} years)", // Reports the creation date of the root folder
+            "keyColor": "white"
+        },
+        {
             "type": "host",
-            "key": "╭─ System ─╮",
+            "key": "╭─ Host ──╮",
             "keyColor": "blue"
         },
         {
-            "type": "command",
-            "key": "├─ OS Age ─┤",
-            "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days",
-            "keyColor": "blue"
-        },
-        {
-            "type": "uptime",
-            "key": "├─ Uptime ─┤",
+            "type": "bios",
+            "key": "├─ Bios ──┤",
+            "format": "{1} {3} {4} ",
             "keyColor": "blue"
         },
         {
             "type": "cpu",
             "temp": true,
-            "key": "├─ CPU ────┤",
+            "key": "├─ CPU ───┤",
             "keyColor": "blue"
         },
         {
             "type": "gpu",
-            "detectionmethod": "pci",
+            "detectionmethod": "pci", //detects discrete gpus
             "temp": true,
-            "key": "├─ GPU ────┤",
+            "key": "├─ GPU ───┤",
             "keyColor": "blue"
         },
         {
             "type": "memory",
-            "key": "├─ RAM ────┤",
+            "key": "├─ RAM ───┤",
             "keyColor": "blue"
         },
         {
             "type": "swap",
-            "key": "╰─ Swap ───╯",
+            "key": "╰─ Swap ──╯",
             "keyColor": "blue"
         },
         "break",
         {
-            "type": "bios",
-            "key": "╭─ Bios ─────╮",
-            "format": "{1} {3} {4} ",
-            "keyColor": "blue"
+            "type": "uptime",
+            "key": "⏱️ Session     ",
+            "keyColor": "white"
         },
         {
             "type": "kernel",
-            "key": "├─ Kernel ───┤",
-            "format": "{1} {2}",
+            "key": "╭─ Kernel ────╮",
+            "format": "{1} {2} {4}",
             "keyColor": "blue"
         },
         {
             "type": "de",
-            "key": "├─ Desktop ──┤",
+            "key": "├─ Desktop ───┤",
+            "keyColor": "blue"
+        },
+        {
+            "type": "wm",
+            "key": "├─ Compositor ┤",
             "keyColor": "blue"
         },
         {
             "type": "terminal",
-            "key": "├─ Terminal ─┤",
+            "key": "├─ Terminal ──┤",
             "keyColor": "blue"
         },
         {
             "type": "shell",
-            "key": "├─ Shell ────┤",
+            "key": "├─ Shell ─────┤",
+            "keyColor": "blue"
+        },
+        {
+            "type": "font",
+            "key": "├─ Font ──────┤",
+            "format": "{font1:14}", //14 probably only works for jetbrains
             "keyColor": "blue"
         },
         {
             "type": "packages",
-            "key": "╰─ Packages ─╯",
+            "key": "╰─ Packages ──╯",
             "keyColor": "blue"
-        },
-        "break",
-        {
-            "type": "weather",
-            "key": " ☀️ Weather 🌥 ",
-            "timeout": 1500,
-            "keyColor": "white"
-        },
+        }
     ]
 }
+
+// use the "custom" module to have only a string for a line
+
+//deprecated below
+
+//        {
+//            "type": "command",
+//            "key": "   System  ",
+//            "text": "birth_install=$(stat -c %W / 2>/dev/null || stat -f %B / 2>/dev/null); if [ -z \"$birth_install\" ] || [ \"$birth_install\" -eq 0 ]; then birth_install=$(find / -maxdepth 0 -printf '%T@' 2>/dev/null); fi; current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); years_difference=$(awk \"BEGIN {printf \\\"%.2f\\\", $days_difference/365}\"); printf '%s years (%s days)\n' \"$years_difference\" \"$days_difference\"",
+//            "keyColor": "white"
+//        },
+
+//        {
+//            "type": "command",
+//            "key": "├─ OS Age ─┤",
+//            "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days",
+//            "keyColor": "blue"
+//        },
+
+// timeout doesn't really work, way too many delays
+//        "break",
+//        {
+//            "type": "weather",
+//            "key": " ☀️ Weather 🌥 ",
+//            "timeout": 1000,
+//            "keyColor": "white"
+//        },
