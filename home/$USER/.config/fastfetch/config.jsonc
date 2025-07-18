@@ -20,7 +20,7 @@
         "break",
         {
             "type": "disk",          // No longer need to write bash scripts
-            "key": "⚙️ System  ",
+            "key": "🖥️ System  ",
             "folders": "/",          // Different OSes may need to specify different folders
             "format": "{years} years and {days-of-year} days ({years-fraction} years)", // Reports the creation date of the root folder
             "keyColor": "white"
@@ -62,7 +62,7 @@
         "break",
         {
             "type": "uptime",
-            "key": "⏱️ Session     ",
+            "key": "📡 Session     ",
             "keyColor": "white"
         },
         {
