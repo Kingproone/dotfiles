@@ -12,47 +12,75 @@ fastfetch
 # Functions
 #############
 
-[[ "$(whoami)" = "root" ]] && return          # was ist dis???
+# to prevent running random stuff as root
+[[ "$(whoami)" = "root" ]] && return
 
-[[ -z "$FUNCNEST" ]] && export FUNCNEST=100   # limits recursive functions, see 'man bash'
+# limits recursive functions, see 'man bash'
+[[ -z "$FUNCNEST" ]] && export FUNCNEST=100
 
-# Ignore case on auto-completion, bind used instead of sticking these in .inputrc
+# case insensitive auto-completion, bind used instead of sticking these in .inputrc
 if [[ $iatest -gt 0 ]]; then bind "set completion-ignore-case on"; fi
 
-# Show auto-completion list automatically, without double tab
+# show auto-completion list automatically, without double Tab
 if [[ $iatest -gt 0 ]]; then bind "set show-all-if-ambiguous On"; fi
 
-# If not running interactively, don't do anything
+# if not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
-[[ -f ~/.welcome_screen ]] && . ~/.welcome_screen #was dis ???
+# show latest Arch Linux news before upgrading, based on:
+# https://www.reddit.com/r/archlinux/comments/1lkxcio/arch_news_before_update/
+arch-update() {
+    printf "🔔 Latest Arch Linux news:\n"
+    curl -s https://archlinux.org/news/ \
+      | grep -E -o 'href="/news/[^"]+"' \
+      | cut -d'"' -f2 \
+      | head -n 2 \
+      | sed 's|^|https://archlinux.org|'
+
+    printf "\n"
+    printf "Do you want to continue with the system upgrade? [Y/n] "
+    read answer
+    if [ -z "$answer" ] || [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+        yay -Syu
+    else
+        printf "⏹️ Upgrade cancelled.\n"
+    fi
+}
 
 ########
 # Bindings
 ############
 
-# Use the up and down arrow keys for finding a command in history
-# You can write some initial letters of the command first.
+# ctrl + c to freeze a running program, ctrl + q to unfreeze
+
+# use the up and down arrow keys for finding a command in history
+# you can write some initial letters of the command first.
 bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
 
-bind '"\C-H":unix-word-rubout'   # ctrl + backspace deletes a word
-# ctrl + c to freeze a running program, ctrl + q to unfreeze
+# ctrl + backspace deletes a word
+bind '"\C-H":unix-word-rubout'
 
-# Better Tab completion
+# better Tab completion
 bind "set show-all-if-ambiguous on"
 bind "set completion-ignore-case on"
-bind '"\C-i": menu-complete' # This binds the 'menu-complete' to the Tab key (Ctrl + i is equivalent to Tab)
-bind '"\e[Z]": menu-complete-backward' # This binds Shift + Tab to cycle backward
+# 'menu-complete' to the Tab key (Ctrl + i is equivalent to Tab)
+bind '"\C-i": menu-complete'
+# Shift + Tab to cycle backward
+bind '"\e[Z]": menu-complete-backward'
+
+# completion for doas, NEEDS 'bash-completion' to be installed
+complete -F _command doas
 
 #######
 # Exports
 ###########
 
-# Expand the history size
+# expand the history size
 export HISTFILESIZE=10000
 export HISTSIZE=500
-export HISTTIMEFORMAT="%F %T " # add timestamp to history
+# add timestamp to history
+export HISTTIMEFORMAT="%F %T "
 
 # set up XDG folders
 export XDG_DATA_HOME="$HOME/.local/share"
@@ -64,42 +92,58 @@ export XDG_CACHE_HOME="$HOME/.cache"
 # Look and feel
 #################
 
-PS1='\[\e[94m\]$(whoami)\[\e[0m\] @\[\e[95m\] $(pwd) \[\e[0m\]~ '
-#PS1='$(whoami) @ $(pwd) $ ' # below with colors
-#_set_liveuser_PS1() {
-#PS1='$(whoami) @ $(pwd) $ '
-#}
-#_set_liveuser_PS1
-#unset -f _set_liveuser_PS1
+# default line before you can start typing
+PS1='\[\e[95m\]@ \[\e[0m\]\[\e[94m\]$(pwd)\[\e[0m\]\[\e[95m\] ~ \[\e[0m\]'
 
-# Terminal title
-PROMPT_COMMAND='echo -en "\033]0;$(whoami) @ $(pwd) ~ - Alacritty"'
-# When a command is running, hardcoded Alacritty as the name, can always rename
-trap 'echo -ne "\033]0;$(whoami) @ ${PWD} (${BASH_COMMAND}) - Alacritty\007"' DEBUG
+# Set terminal title to current directory on prompt
+PROMPT_COMMAND='printf "\033]0;@ %s\007" "$(pwd)"'
+
+# Only update title for user-entered commands, not internal shell functions
+trap '
+  case "$BASH_COMMAND" in
+    __bp_interactive_mode|__bp_precmd_invoke_cmd|__bp_preexec_invoke_exec)
+      # do nothing for internal functions
+      ;;
+    *)
+      printf "\033]0;@ %s ~ %s\007" "${PWD}" "${BASH_COMMAND}"
+      ;;
+  esac
+' DEBUG
+
+#Add other internal commands to the case statement if you see them in your title.
+#You can use regex/wildcards to match more patterns if needed.
 
 #######
 # Aliases
 ###########
 
-# Run commands unaliased with a '\'
+# run commands unaliased with a '\'
 
 alias ls='ls -a --color=auto'
 alias ll='ls -lav --ignore=..'   # show long listing of all except ".."
 alias l='ls -lav --ignore=.?*'   # show long listing but no hidden dotfiles except "."
 alias ff='fastfetch'
+alias td='termdown'
 
 alias c='clear'
 alias x='exit'
 alias q='exit'
-alias bash='source ~/.bashrc'    # refresh shell
-alias kde='systemctl --user restart plasma-plasmashell' # restart kde plasma shell
+alias bsh='source ~/.bashrc'   # refresh shell
+alias kde='systemctl --user restart plasma-plasmashell'   # restart kde plasma shell
+alias plasma='systemctl --user restart plasma-plasmashell'
 
 alias re='reboot'
+alias sre='systemctl soft-reboot'
 alias po='poweroff'
-alias zz='systemctl suspend'     # sleep
+alias zz='systemctl suspend'   # sleep
 
-alias up='yay -Syu'
+alias ping='ping -c 6 google.com'     # takes ~5 seconds
+alias up="arch-update"
+# search the repos for packages in the terminal, can pan the bottom with scroll or click and drag, enter installs
+alias yayf="yay -Slq | fzf --multi --preview 'yay -Sii {1}' --preview-window=down:75% | xargs -ro yay -S"
+alias purge='yay -Rnsc'
 alias top='htop'
-alias we='curl wttr.in'          # weather
+alias hotp='htop'
+alias we='curl wttr.in'   # weather
 alias lin='curl -fsSL https://christitus.com/linux | sh'
 alias lindev='curl -fsSL https://christitus.com/linuxdev | sh'
