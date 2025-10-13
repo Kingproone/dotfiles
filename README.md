@@ -16,6 +16,7 @@ https://github.com/fastfetch-cli/fastfetch/tree/dev/presets <br />
 https://github.com/ChrisTitusTech/mybash/blob/main/config.jsonc <br />
 https://github.com/fastfetch-cli/fastfetch/discussions/1040#discussioncomment-9866131 <br />
 https://www.asciiart.eu/ <br />
+https://github.com/fastfetch-cli/fastfetch/issues/1847 <br />
 
 ### Bash <br />
 A command listed in .bashrc will run at terminal start. <br />
