@@ -93,9 +93,9 @@
             "keyColor": "blue"
         },
         {
-            "type": "font",
-            "key": "├─ Font ──────┤",
-            "format": "{font1:14}", //14 probably only works for jetbrains
+            "type": "icons",
+            "key": "├─ Icons ─────┤",
+            "format": "{icons1}",
             "keyColor": "blue"
         },
         {
@@ -121,6 +121,13 @@
 //            "type": "command",
 //            "key": "├─ OS Age ─┤",
 //            "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days",
+//            "keyColor": "blue"
+//        },
+
+//        {
+//            "type": "font",
+//            "key": "├─ Font ──────┤",
+//            "format": "{font1:14}", //14 probably only works for jetbrains
 //            "keyColor": "blue"
 //        },
 
