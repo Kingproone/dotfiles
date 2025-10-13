@@ -63,6 +63,7 @@
         {
             "type": "uptime",
             "key": "📡 Session     ",
+            "format": "{hours} hours and {minutes} minutes",
             "keyColor": "white"
         },
         {
