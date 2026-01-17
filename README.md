@@ -1,10 +1,12 @@
 # Guides & References
 
-### Gui <br />
+### Plasma customizations <br />
 https://store.kde.org/p/1561335/ - willow dark decorations <br />
+https://store.kde.org/p/2139337 - split clock for vertical panels <br />
 https://github.com/matinlotfali/KDE-Rounded-Corners - rounded corners <br />
 https://github.com/vinceliuice/Tela-icon-theme - tela icons <br />
 https://github.com/vinceliuice/Qogir-icon-theme/tree/master/src/cursors/dist - qogir cursors <br />
+https://github.com/guiodic/material-decoration - [upstream implementation pending](https://invent.kde.org/plasma/breeze/-/merge_requests/529) - locally integrated menus <br />
 
 ### Alacritty <br />
 https://github.com/TwiggieSmallz/Default-Alacritty-TOML-Config/blob/main/alacritty.toml <br />
