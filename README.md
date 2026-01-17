@@ -8,10 +8,6 @@ https://github.com/vinceliuice/Tela-icon-theme - tela icons <br />
 https://github.com/vinceliuice/Qogir-icon-theme/tree/master/src/cursors/dist - qogir cursors <br />
 https://github.com/guiodic/material-decoration - [upstream implementation pending](https://invent.kde.org/plasma/breeze/-/merge_requests/529) - locally integrated menus <br />
 
-### Alacritty <br />
-https://github.com/TwiggieSmallz/Default-Alacritty-TOML-Config/blob/main/alacritty.toml <br />
-https://github.com/alacritty/alacritty/pull/7231 <br />
-
 ### Fastfetch <br />
 https://github.com/fastfetch-cli/fastfetch/wiki <br />
 https://github.com/fastfetch-cli/fastfetch/tree/dev/presets <br />
@@ -48,3 +44,9 @@ https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html <
 https://daulton.ca/2018/08/reboot-and-shutdown-options-grub/ <br />
 https://askubuntu.com/questions/1513639/how-to-load-custom-fonts-in-a-grub-theme <br />
 [os-prober](https://tracker.debian.org/pkg/os-prober) and [grub customizer](https://github.com/muzena/grub-customizer) died for me<br />
+
+### No longer used
+
+#### Alacritty <br />
+https://github.com/TwiggieSmallz/Default-Alacritty-TOML-Config/blob/main/alacritty.toml <br />
+https://github.com/alacritty/alacritty/pull/8494 - scrollbar pr, probably not happening, why I use Konsole <br />
