@@ -42,7 +42,6 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
-
 # idea from reddit, significantly changed and expanded and possibly unneccessearly bloated in some ways
 # https://www.reddit.com/r/archlinux/comments/1lkxcio/arch_news_before_update/
 archupdate() {
@@ -189,7 +188,16 @@ alias plasma='systemctl --user restart plasma-plasmashell'
 alias ping='ping -c 6 google.com'     # takes ~5 seconds
 alias up="archupdate"
 alias purge='yay -Rnsc' # no Tab completion
-alias hm='yay -Sy &> /dev/null && yay -Qu' # check for updates without installing
+# check for updates without password
+alias hm='
+    printf "\n\033[1;34m→ Official updates:\033[m\n"
+    checkupdates | grep -v "^chaotic-aur/" | tee /dev/tty | wc -l
+
+    printf "\n\033[1;36m→ AUR updates:\033[m\n"
+    yay -Quq --aur | tee /dev/tty | wc -l
+
+    printf "\n\033[1;33m→ Chaotic-AUR updates:\033[m\n"
+    checkupdates | grep "^chaotic-aur/" | tee /dev/tty | wc -l'
 
 # yoinked from: https://github.com/ChrisTitusTech/mybash/blob/main/.bashrc  (aliased as yayf)
 # search the repos for packages in the terminal, can pan the bottom with scroll or click and drag, enter installs, TAB for multi selection, add --reverse to fzf for inverted layout
