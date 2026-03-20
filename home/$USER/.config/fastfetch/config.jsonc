@@ -1,8 +1,4 @@
 {
-    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-    "general": {
-                    "dsForceDrm": false     //check for wayland first in the wm module
-               },
     "logo": {
                 "type": "file",
                 "source": "~/.config/fastfetch/astronaut.txt",
@@ -11,18 +7,18 @@
     "display": {
                     "separator": " ",
                     "fraction": {"ndigits":2},
-                    "temp": {"ndigits":2},
-                    "freq": {"ndigits":2},
-                    "percent": {"ndigits":2},
-                    "size":  {"ndigits":2}
+// for the fractional years section modify '\"%.2f\'
+                    "temp":     {"ndigits":2},
+                    "freq":     {"ndigits":2},
+                    "percent":  {"ndigits":2},
+                    "size":     {"ndigits":2}
                },
     "modules": [
         "break",
         {
-            "type": "disk",          // No longer need to write bash scripts
+            "type": "command",
             "key": "🖥️ System  ",
-            "folders": "/",          // Different OSes may need to specify different folders
-            "format": "{years} years and {days-of-year} days ({years-fraction} years)", // Reports the creation date of the root folder
+            "text": "d=$(( ($(date +%s) - $(stat -c %W /)) / 86400 )); y=$((d/365)); rd=$((d%365)); frac=$(awk -v d=$d 'BEGIN{printf \"%.2f\",d/365.25}'); if [ $y -gt 0 ] && [ $rd -gt 0 ]; then echo \"$y $([ $y -eq 1 ] && echo year || echo years) and $rd $([ $rd -eq 1 ] && echo day || echo days) ($frac years)\"; elif [ $y -gt 0 ]; then echo \"$y $([ $y -eq 1 ] && echo year || echo years) ($frac years)\"; elif [ $rd -gt 0 ]; then echo \"$rd $([ $rd -eq 1 ] && echo day || echo days) ($frac years)\"; else echo \"0 days\"; fi",
             "keyColor": "white"
         },
         {
@@ -61,9 +57,9 @@
         },
         "break",
         {
-            "type": "uptime",
-            "key": "📡 Session     ",
-            "format": "{hours} hours and {minutes} minutes",
+            "type": "command",
+            "key": "🕐 Session     ",
+            "text": "u=$(cut -d. -f1 /proc/uptime); h=$((u/3600)); m=$(((u%3600)/60)); if [ $h -gt 0 ] && [ $m -gt 0 ]; then echo \"$h $([ $h -eq 1 ] && echo hour || echo hours) and $m $([ $m -eq 1 ] && echo minute || echo minutes)\"; elif [ $h -gt 0 ]; then echo \"$h $([ $h -eq 1 ] && echo hour || echo hours)\"; elif [ $m -gt 0 ]; then echo \"$m $([ $m -eq 1 ] && echo minute || echo minutes)\"; else echo \"0 minutes\"; fi",
             "keyColor": "white"
         },
         {
@@ -102,13 +98,147 @@
             "type": "packages",
             "key": "╰─ Packages ──╯",
             "keyColor": "blue"
-        }
+        },
+        {
+            "type": "command",
+            "key": "📦 Last update ",
+            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); \"date -d \\\"\"dt\"\\\" +%s\" | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); p=(diff<=604800?\"\":(diff<=1209600?\" 🟠\":\" 🔴\")); if(d>0&&h>0) printf \"%d %s and %d %s ago%s\\n\",d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"),p; else if(d>0) printf \"%d %s ago%s\\n\",d,(d==1?\"day\":\"days\"),p; else if(h>0) printf \"%d %s ago%s\\n\",h,(h==1?\"hour\":\"hours\"),p; else printf \"just now\\n\"}' /var/log/pacman.log",
+            "keyColor": "white"
+        },
+        "break",
     ]
 }
 
 // use the "custom" module to have only a string for a line
 
-//deprecated below
+//System age
+//years and days display
+//singular/plural grammar
+//omits zero values
+//fractional years to 2 decimal places
+
+//Session
+//hours and minutes display
+//singular/plural grammar
+//omits zero values
+
+//Last update
+//reads pacman log
+//days and hours display
+//singular/plural grammar
+//omits zero values
+//just now fallback
+//color indicator via emoji (🟢 ≤7d, 🟠 ≤14d, 🔴 >14d)
+
+// system age and session have much more compact versions, but they also dont handle edgecases
+
+//archive
+
+
+//    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+//    "general": {
+//                    "dsForceDrm": false     //check for wayland first in the wm module
+//               },
+
+
+//        {
+//            "type": "disk",          // No longer need to write bash scripts
+//            "key": "🖥️ System  ",
+//            "folders": "/",          // Different OSes may need to specify different folders
+//            "format": "{years} years and {days-of-year} days ({years-fraction} years)", // Reports the creation date of the root folder
+//            "keyColor": "white"
+//        },
+        //correct grammar for 1
+//        {
+//        "type": "command",
+//        "key": "🖥️ System  ",
+//        "text": "created=$(stat -c %W /); now=$(date +%s); diff=$((now-created)); d=$((diff/86400)); y=$((d/365)); rd=$((d%365)); ys=$([ $y -eq 1 ] && echo year || echo years); ds=$([ $rd -eq 1 ] && echo day || echo days); frac=$(awk -v days=$d 'BEGIN{printf \"%.2f\", days/365.25}'); echo \"$y $ys and $rd $ds ($frac years)\"",
+//        "keyColor": "white"
+//        },
+        //cleaned up version
+//        {
+//            "type": "command",
+//            "key": "🖥️ System  ",
+//            "text": "d=$(( ($(date +%s) - $(stat -c %W /)) / 86400 )); y=$((d/365)); rd=$((d%365)); printf \"%d %s and %d %s (%s years)\\n\" $y \"$([ $y -eq 1 ] && echo year || echo years)\" $rd \"$([ $rd -eq 1 ] && echo day || echo days)\" $(awk -v d=$d 'BEGIN{printf \"%.2f\",d/365.25}')",
+//            "keyColor": "white"
+//        },
+    // nothing when 0
+
+
+//        {
+//           "type": "uptime",
+//           "key": "🕐 Session     ",
+//           "format": "{hours} hours and {minutes} minutes",
+//           "keyColor": "white"
+//        },
+        // correct grammar for 1
+//        {
+//            "type": "command",
+//            "key": "🕐 Session     ",
+//            "text": "uptime=$(cat /proc/uptime | cut -d. -f1); h=$((uptime/3600)); m=$(( (uptime%3600)/60 )); hs=$([ $h -eq 1 ] && echo hour || echo hours); ms=$([ $m -eq 1 ] && echo minute || echo minutes); echo \"$h $hs and $m $ms\"",
+//            "keyColor": "white"
+//        },
+        //cleaned up version
+//        {
+//            "type": "command",
+//            "key": "🕐 Session     ",
+//            "text": "u=$(cut -d. -f1 /proc/uptime); h=$((u/3600)); m=$(((u%3600)/60)); echo \"$h $([ $h -eq 1 ] && echo hour || echo hours) and $m $([ $m -eq 1 ] && echo minute || echo minutes)\"",
+//            "keyColor": "white"
+//        },
+        //nothing when 0
+
+
+//        {
+//            "type": "command",
+//            "key": "📦 Last update ",
+//            "text": "awk '/starting full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); cmd=\"date -d \\\"\"dt\"\\\" +%s\"; cmd | getline ts; \"date +%s\" | getline now; diff=now-ts; printf \"%d days and %d hours ago\\n\", diff/86400, (diff%86400)/3600}' /var/log/pacman.log",
+//            "keyColor": "white"
+//        },
+    // correct grammar for 1
+//        {
+//        "type": "command",
+//        "key": "📦 Last update ",
+//        "text": "awk '/starting full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); cmd=\"date -d \\\"\"dt\"\\\" +%s\"; cmd | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); ds=(d==1?\"day\":\"days\"); hs=(h==1?\"hour\":\"hours\"); printf \"%d %s and %d %s ago\\n\", d, ds, h, hs}' /var/log/pacman.log",
+//        "keyColor": "white"
+//        },
+        //cleaned up version
+//        {
+//            "type": "command",
+//            "key": "📦 Last update ",
+//            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); cmd=\"date -d \\\"\"dt\"\\\" +%s\"; cmd | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); printf \"%d %s and %d %s ago\\n\", d, (d==1?\"day\":\"days\"), h, (h==1?\"hour\":\"hours\")}' /var/log/pacman.log",
+//            "keyColor": "white"
+//        },
+//        {
+//            "type": "command",
+//            "key": "📦 Last update ",
+//            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); cmd=\"date -d \\\"\"dt\"\\\" +%s\"; cmd | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); if(d>0&&h>0) printf \"%d %s and %d %s ago\\n\",d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"); else if(d>0) printf \"%d %s ago\\n\",d,(d==1?\"day\":\"days\"); else if(h>0) printf \"%d %s ago\\n\",h,(h==1?\"hour\":\"hours\"); else print \"just now\"}' /var/log/pacman.log",
+//            "keyColor": "white"
+//        },
+//        {
+//            "type": "command",
+//            "key": "📦 Last update ",
+//            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); cmd=\"date -d \\\"\"dt\"\\\" +%s\"; cmd | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); p=(d<=7?\"🟢\":(d<=14?\"🟠\":\"🔴\")); if(d>0&&h>0) printf \"%s %d %s and %d %s ago\\n\",p,d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"); else if(d>0) printf \"%s %d %s ago\\n\",p,d,(d==1?\"day\":\"days\"); else if(h>0) printf \"%s %d %s ago\\n\",p,h,(h==1?\"hour\":\"hours\"); else printf \"%s just now\\n\",p}' /var/log/pacman.log",
+//            "keyColor": "white"
+//        },
+//        {
+//            "type": "command",
+//            "key": "📦 Last update ",
+//            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); cmd=\"date -d \\\"\"dt\"\\\" +%s\"; cmd | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); th=int(diff/3600); p=(th<=168?\"🟢\":(th<=336?\"🟠\":\"🔴\")); if(d>0&&h>0) printf \"%s %d %s and %d %s ago\\n\",p,d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"); else if(d>0) printf \"%s %d %s ago\\n\",p,d,(d==1?\"day\":\"days\"); else if(h>0) printf \"%s %d %s ago\\n\",p,h,(h==1?\"hour\":\"hours\"); else printf \"%s just now\\n\",p}' /var/log/pacman.log",
+//            "keyColor": "white"
+//        },
+//        {
+//            "type": "command",
+//            "key": "📦 Last update ",
+//            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); cmd=\"date -d \\\"\"dt\"\\\" +%s\"; cmd | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); th=int(diff/3600); p=(th<=168?\"🟢\":(th<=336?\"🟠\":\"🔴\")); if(d>0&&h>0) printf \"%d %s and %d %s ago %s\\n\",d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"),p; else if(d>0) printf \"%d %s ago %s\\n\",d,(d==1?\"day\":\"days\"),p; else if(h>0) printf \"%d %s ago %s\\n\",h,(h==1?\"hour\":\"hours\"),p; else printf \"just now %s\\n\",p}' /var/log/pacman.log",
+//            "keyColor": "white"
+//        },
+//        {
+//            "type": "command",
+//            "key": "📦 Last update ",
+//            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); \"date -d \\\"\"dt\"\\\" +%s\" | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); p=(diff<=604800?\"🟢\":(diff<=1209600?\"🟠\":\"🔴\")); if(d>0&&h>0) printf \"%d %s and %d %s ago %s\\n\",d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"),p; else if(d>0) printf \"%d %s ago %s\\n\",d,(d==1?\"day\":\"days\"),p; else if(h>0) printf \"%d %s ago %s\\n\",h,(h==1?\"hour\":\"hours\"),p; else printf \"just now %s\\n\",p}' /var/log/pacman.log",
+//            "keyColor": "white"
+//        },
+
 
 //        {
 //            "type": "command",
