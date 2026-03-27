@@ -1,5 +1,31 @@
 # Guides & References
 
+### Arch customizations
+
+<details>
+<summary><b>Use all cores for package building and compression</b></summary><br />
+
+1. Open
+```
+/etc/makepkg.conf
+```
+
+2. Uncomment and set `MAKEFLAGS=` to `$(nproc)`, it automatically detects your total CPU threads.
+```
+MAKEFLAGS="-j$(nproc)"
+```
+
+3. Make file compressions multi-threaded too, comment out the default ones to keep them
+```
+COMPRESSXZ=(xz -c -T0 -z -)
+COMPRESSZST=(zstd -c -T0 --auto-threads=logical -)
+COMPRESSLZ4=(lz4 -q -T0)
+```
+
+> the rest of the compressors can't be parallelized
+
+</details>
+
 ### Plasma customizations <br />
 https://store.kde.org/p/1561335/ - willow dark decorations <br />
 https://store.kde.org/p/2139337 - split clock for vertical panels <br />
@@ -7,9 +33,8 @@ https://github.com/matinlotfali/KDE-Rounded-Corners - rounded corners <br />
 https://github.com/vinceliuice/Tela-icon-theme - tela icons <br />
 https://github.com/vinceliuice/Qogir-icon-theme/tree/master/src/cursors/dist - qogir cursors <br />
 https://github.com/guiodic/material-decoration - [upstream implementation pending](https://invent.kde.org/plasma/breeze/-/merge_requests/529) - locally integrated menus <br />
-
 <details>
-<summary> Switching audio outputs in KDE Plasma with a keyboard shortcut </summary>
+<summary><b>Switching audio outputs in KDE Plasma with a keyboard shortcut</b></summary>
 <br />
   
 > made with claude 4.6, then cleaned up
