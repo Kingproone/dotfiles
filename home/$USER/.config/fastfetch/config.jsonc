@@ -22,8 +22,8 @@
             "keyColor": "white"
         },
         {
-            "type": "host",
-            "key": "╭─ Host ──╮",
+            "type": "board",
+            "key": "╭─ Board ─╮",
             "keyColor": "blue"
         },
         {
