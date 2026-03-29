@@ -3,6 +3,25 @@
 ### Arch customizations
 
 <details>
+<summary><b>Set up swapfile</b></summary><br />
+
+> https://wiki.archlinux.org/title/Swap#Swap_file
+
+1. Make the swapfile
+```
+sudo mkswap -U clear --size 8G --file /swapfile
+```
+2. Turn it on
+```
+sudo swapon /swapfile
+```
+3. Add the following to: `/etc/fstab`
+```
+/swapfile none swap defaults 0 0
+```
+</details>
+
+<details>
 <summary><b>Use all cores for package building and compression</b></summary><br />
 
 1. Open
@@ -23,7 +42,6 @@ COMPRESSLZ4=(lz4 -q -T0)
 ```
 
 > the rest of the compressors can't be parallelized
-
 </details>
 
 ### Plasma customizations <br />
