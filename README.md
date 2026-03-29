@@ -26,6 +26,26 @@ sudo swapon /swapfile
 ```
 </details>
 
+<details><summary> Plasma Login Manager instead of SDDM </summary><br />
+
+1. Install Plasma Login Manager
+```
+sudo pacman -S plasma-login-manager
+```
+2. Disable SDDM and enable Plasma Login Manager
+```
+sudo systemctl disable sddm
+sudo systemctl enable --force plasmalogin.service
+```
+3. List and remove SDDM packages
+```
+pacman -Qq | grep sddm
+```
+```
+sudo pacman -Rns sddm sddm-kcm
+```
+</details>
+
 <details>
 <summary> Use all cores for package building and compression </summary><br />
 
