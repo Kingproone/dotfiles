@@ -1,9 +1,10 @@
 # Guides & References
 
-### Arch customizations
+<details>
+<summary><b> Arch </b></summary><br />
 
 <details>
-<summary><b>Set up swapfile</b></summary><br />
+<summary> Set up swapfile </summary><br />
 
 > https://wiki.archlinux.org/title/Swap#Swap_file
 
@@ -26,7 +27,7 @@ sudo swapon /swapfile
 </details>
 
 <details>
-<summary><b>Use all cores for package building and compression</b></summary><br />
+<summary> Use all cores for package building and compression </summary><br />
 
 1. Open
 ```
@@ -47,17 +48,21 @@ COMPRESSLZ4=(lz4 -q -T0)
 
 > the rest of the compressors can't be parallelized
 </details>
+</details>
 
-### Plasma customizations <br />
+---
+
+<details>
+<summary><b> Plasma </b></summary> <br />
 https://store.kde.org/p/1561335/ - willow dark decorations <br />
 https://store.kde.org/p/2139337 - split clock for vertical panels <br />
 https://github.com/matinlotfali/KDE-Rounded-Corners - rounded corners <br />
 https://github.com/vinceliuice/Tela-icon-theme - tela icons <br />
 https://github.com/vinceliuice/Qogir-icon-theme/tree/master/src/cursors/dist - qogir cursors <br />
 https://github.com/guiodic/material-decoration - [upstream implementation pending](https://invent.kde.org/plasma/breeze/-/merge_requests/529) - locally integrated menus <br />
+
 <details>
-<summary><b>Switching audio outputs in KDE Plasma with a keyboard shortcut</b></summary>
-<br />
+<summary> Switching audio outputs in KDE Plasma with a keyboard shortcut </summary><br />
   
 > made with claude 4.6, then cleaned up
 
@@ -222,16 +227,26 @@ export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 Bluetooth sink not appearing: Bluetooth sinks only exist in PipeWire/PulseAudio while the device is connected. The cycle script above will skip gracefully if a sink isn't present only if you add a connectivity check; otherwise it will fall through to index 0. If you rely on Bluetooth in the rotation, add a check with `pactl list short sinks | grep -q "$TARGET"` before setting it.
 
 </details>
+</details>
 
-### Fastfetch <br />
+---
+
+<details>
+<summary><b> Fastfetch </b></summary><br />
+
 https://github.com/fastfetch-cli/fastfetch/wiki <br />
 https://github.com/fastfetch-cli/fastfetch/tree/dev/presets <br />
 https://github.com/ChrisTitusTech/mybash/blob/main/config.jsonc <br />
 https://github.com/fastfetch-cli/fastfetch/discussions/1040#discussioncomment-9866131 <br />
 https://www.asciiart.eu/ <br />
 https://github.com/fastfetch-cli/fastfetch/issues/1847 <br />
+</details>
 
-### Bash <br />
+---
+
+<details>
+<summary><b> Bash </b></summary><br />
+
 A command listed in .bashrc will run at terminal start. <br />
 https://www.cyberciti.biz/tips/howto-linux-unix-bash-shell-setup-prompt.html <br />
 https://stackoverflow.com/questions/2518127/how-to-reload-bashrc-settings-without-logging-out-and-back-in-again <br />
@@ -242,8 +257,13 @@ https://github.com/ChrisTitusTech/mybash/blob/main/.bashrc <br />
 https://stackoverflow.com/questions/71459823/how-to-change-the-terminal-title-to-currently-running-process <br />
 https://misc.flogisoft.com/bash/tip_colors_and_formatting <br />
 https://medium.com/@adamtowers/how-to-customize-your-terminal-and-bash-profile-from-scratch-9ab079256380 <br />
+</details>
 
-### Grub <br />
+---
+
+<details>
+<summary><b> Grub </b></summary><br />
+
 Regenerate ```grub.cfg``` with:
 ```
 sudo grub-mkconfig -o /boot/grub/grub.cfg
@@ -253,15 +273,20 @@ Generate font file:
 grub-mkfont --output=outfile.pf2 --size=16 infile.ttf
 ```
 https://www.artstation.com/artwork/oOYllO - background <br />
-https://www.gnome-look.org/p/1009236 - icons, edited a bit <br />
+https://www.gnome-look.org/p/1009236 - icons (shutdown and restart have been made a bit bigger), and the bottom infobar<br />
 https://wiki.archlinux.org/title/GRUB#Dual-booting <br />
 https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html <br />
 https://daulton.ca/2018/08/reboot-and-shutdown-options-grub/ <br />
 https://askubuntu.com/questions/1513639/how-to-load-custom-fonts-in-a-grub-theme <br />
 [os-prober](https://tracker.debian.org/pkg/os-prober) and [grub customizer](https://github.com/muzena/grub-customizer) died for me<br />
+</details>
 
-### No longer used
+---
+
+<details>
+<summary><b> No longer used </b></summary><br />
 
 #### Alacritty <br />
 https://github.com/TwiggieSmallz/Default-Alacritty-TOML-Config/blob/main/alacritty.toml <br />
 https://github.com/alacritty/alacritty/pull/8494 - scrollbar pr, probably not happening, why I use Konsole <br />
+</details>
