@@ -15,7 +15,11 @@ sudo mkswap -U clear --size 8G --file /swapfile
 ```
 sudo swapon /swapfile
 ```
-3. Add the following to: `/etc/fstab`
+3. Open:
+```
+/etc/fstab
+```
+4. Add to the end:
 ```
 /swapfile none swap defaults 0 0
 ```
