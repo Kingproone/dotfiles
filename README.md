@@ -26,6 +26,7 @@ sudo swapon /swapfile
 ```
 </details>
 
+
 <details><summary> Plasma Login Manager instead of SDDM </summary><br />
 
 1. Install Plasma Login Manager
@@ -46,6 +47,7 @@ sudo pacman -Rns sddm sddm-kcm
 ```
 </details>
 
+
 <details>
 <summary> Use all cores for package building and compression </summary><br />
 
@@ -53,19 +55,16 @@ sudo pacman -Rns sddm sddm-kcm
 ```
 /etc/makepkg.conf
 ```
-
 2. Uncomment and set `MAKEFLAGS=` to `$(nproc)`, it automatically detects your total CPU threads.
 ```
 MAKEFLAGS="-j$(nproc)"
 ```
-
 3. Make file compressions multi-threaded too, comment out the default ones to keep them
 ```
 COMPRESSXZ=(xz -c -T0 -z -)
 COMPRESSZST=(zstd -c -T0 --auto-threads=logical -)
 COMPRESSLZ4=(lz4 -q -T0)
 ```
-
 > the rest of the compressors can't be parallelized
 </details>
 </details>
@@ -81,8 +80,24 @@ https://github.com/vinceliuice/Tela-icon-theme - tela icons <br />
 https://github.com/vinceliuice/Qogir-icon-theme/tree/master/src/cursors/dist - qogir cursors <br />
 https://github.com/guiodic/material-decoration - [upstream implementation pending](https://invent.kde.org/plasma/breeze/-/merge_requests/529) - locally integrated menus <br />
 
+
 <details>
-<summary> Switching audio outputs in KDE Plasma with a keyboard shortcut </summary><br />
+<summary> Freetube PiP </summary><br />
+Add a window rule for an open PiP window
+
+  - Window class: unimportant
+  - Match whole class: no
+  - Window types: all selected
+  - Windows title: exact match, `Picture in picture`
+  - Keep above other windows: force, yes
+
+With 0.24, the PiP broke, since on wayland the protocol for it is still in experimental. <br />
+fix: https://github.com/FreeTubeApp/FreeTube/issues/8922#issuecomment-4221005305
+</details>
+
+
+<details>
+<summary> Switch between audio outputs with a keyboard shortcut </summary><br />
   
 > made with claude 4.6, then cleaned up
 
@@ -224,7 +239,6 @@ notify-send "Audio output" "$LABEL" -t 1000
 chmod +x ~/.local/bin/switch-audio.sh
 ./switch-audio.sh
 ```
-
 Open something that's playing audio before testing, so you can confirm streams follow the switch.
 
 #### Step 5: Assign a keyboard shortcut in System Settings
