@@ -6,12 +6,8 @@
             },
     "display": {
                     "separator": " ",
-                    "fraction": {"ndigits":2},
-// for the fractional years section modify '\"%.2f\'
-                    "temp":     {"ndigits":2},
-                    "freq":     {"ndigits":2},
-                    "percent":  {"ndigits":2},
-                    "size":     {"ndigits":2}
+                    "common": {"ndigits": 2, "spaceBeforeUnit": 0}
+                    // for the fractional years section modify '\"%.2f\'
                },
     "modules": [
         "break",
