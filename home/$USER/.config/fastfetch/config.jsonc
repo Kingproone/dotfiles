@@ -7,15 +7,15 @@
     "display": {
                     "separator": " ",
                     "common": {"ndigits": 2, "spaceBeforeUnit": 0}
-                    // for the fractional years section modify '\"%.2f\'
+                    // for the fractional sections in scripts modify '\"%.2f\'
                },
     "modules": [
         "break",
         {
             "type": "command",
             "key": "🖥️ System  ",
-            "text": "d=$(( ($(date +%s) - $(stat -c %W /)) / 86400 )); y=$((d/365)); rd=$((d%365)); frac=$(awk -v d=$d 'BEGIN{printf \"%.2f\",d/365.25}'); if [ $y -gt 0 ] && [ $rd -gt 0 ]; then echo \"$y $([ $y -eq 1 ] && echo year || echo years) and $rd $([ $rd -eq 1 ] && echo day || echo days) ($frac years)\"; elif [ $y -gt 0 ]; then echo \"$y $([ $y -eq 1 ] && echo year || echo years) ($frac years)\"; elif [ $rd -gt 0 ]; then echo \"$rd $([ $rd -eq 1 ] && echo day || echo days) ($frac years)\"; else echo \"0 days\"; fi",
-            "keyColor": "white"
+            "keyColor": "white",
+            "text": "awk -v now=$(date +%s) -v boot=$(stat -c %W /) 'BEGIN{d=int((now-boot)/86400); y=int(d/365); rd=d%365; frac=sprintf(\"%.2f\",d/365.25); if(y>0 && rd>0) printf \"%d %s and %d %s (%s years)\\n\",y,(y==1?\"year\":\"years\"),rd,(rd==1?\"day\":\"days\"),frac; else if(y>0) printf \"%d %s (%s years)\\n\",y,(y==1?\"year\":\"years\"),frac; else if(rd>0) printf \"%d %s (%s years)\\n\",rd,(rd==1?\"day\":\"days\"),frac; else print \"0 days\"}'"
         },
         {
             "type": "board",
@@ -42,6 +42,12 @@
             "keyColor": "blue"
         },
         {
+            "type": "command",
+            "key": "├─ VRAM ──┤",
+            "keyColor": "blue",
+            "text": "awk 'BEGIN{u=ARGV[1]+0; t=ARGV[2]+0; p=u*100/t; c=(p<70)?\"\\033[32m\":(p<90)?\"\\033[33m\":\"\\033[31m\"; printf \"%.2f GiB / %.2f GiB (%s%.2f%%\\033[0m)\\n\", u/1073741824, t/1073741824, c, p}' $(cat /sys/class/drm/card1/device/mem_info_vram_used) $(cat /sys/class/drm/card1/device/mem_info_vram_total)"
+        },
+        {
             "type": "memory",
             "key": "├─ RAM ───┤",
             "keyColor": "blue"
@@ -55,8 +61,8 @@
         {
             "type": "command",
             "key": "🕐 Session     ",
-            "text": "u=$(cut -d. -f1 /proc/uptime); h=$((u/3600)); m=$(((u%3600)/60)); if [ $h -gt 0 ] && [ $m -gt 0 ]; then echo \"$h $([ $h -eq 1 ] && echo hour || echo hours) and $m $([ $m -eq 1 ] && echo minute || echo minutes)\"; elif [ $h -gt 0 ]; then echo \"$h $([ $h -eq 1 ] && echo hour || echo hours)\"; elif [ $m -gt 0 ]; then echo \"$m $([ $m -eq 1 ] && echo minute || echo minutes)\"; else echo \"0 minutes\"; fi",
-            "keyColor": "white"
+            "keyColor": "white",
+            "text": "awk 'BEGIN{u=int(ARGV[1]); h=int(u/3600); m=int((u%3600)/60); if(h>0 && m>0) printf \"%d %s and %d %s\\n\",h,(h==1?\"hour\":\"hours\"),m,(m==1?\"minute\":\"minutes\"); else if(h>0) printf \"%d %s\\n\",h,(h==1?\"hour\":\"hours\"); else if(m>0) printf \"%d %s\\n\",m,(m==1?\"minute\":\"minutes\"); else print \"0 minutes\"}' $(cut -d. -f1 /proc/uptime)"
         },
         {
             "type": "kernel",
@@ -98,8 +104,8 @@
         {
             "type": "command",
             "key": "📦 Last update ",
-            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); \"date -d \\\"\"dt\"\\\" +%s\" | getline ts; \"date +%s\" | getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); p=(diff<=604800?\"\":(diff<=1209600?\" 🟠\":\" 🔴\")); if(d>0&&h>0) printf \"%d %s and %d %s ago%s\\n\",d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"),p; else if(d>0) printf \"%d %s ago%s\\n\",d,(d==1?\"day\":\"days\"),p; else if(h>0) printf \"%d %s ago%s\\n\",h,(h==1?\"hour\":\"hours\"),p; else printf \"just now\\n\"}' /var/log/pacman.log",
-            "keyColor": "white"
+            "keyColor": "white",
+            "text": "awk '/full system upgrade/{dt=$1} END{gsub(/[\\[\\]]/,\"\",dt); \"date -d \\\"\"dt\"\\\" +%s\"|getline ts; \"date +%s\"|getline now; diff=now-ts; d=int(diff/86400); h=int((diff%86400)/3600); p=(diff<=604800?\"\":(diff<=1209600?\" 🟠\":\" 🔴\")); if(d>0&&h>0) printf \"%d %s and %d %s ago%s\\n\",d,(d==1?\"day\":\"days\"),h,(h==1?\"hour\":\"hours\"),p; else if(d>0) printf \"%d %s ago%s\\n\",d,(d==1?\"day\":\"days\"),p; else if(h>0) printf \"%d %s ago%s\\n\",h,(h==1?\"hour\":\"hours\"),p; else print \"just now\"}' /var/log/pacman.log"
         },
         "break",
     ]
