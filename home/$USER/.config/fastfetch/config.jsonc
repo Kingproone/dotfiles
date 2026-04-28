@@ -91,12 +91,6 @@
             "keyColor": "blue"
         },
         {
-            "type": "icons",
-            "key": "├─ Icons ─────┤",
-            "format": "{icons1}",
-            "keyColor": "blue"
-        },
-        {
             "type": "packages",
             "key": "╰─ Packages ──╯",
             "keyColor": "blue"
