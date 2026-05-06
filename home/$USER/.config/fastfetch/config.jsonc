@@ -45,7 +45,7 @@
             "type": "command",
             "key": "├─ VRAM ──┤",
             "keyColor": "blue",
-            "text": "awk 'BEGIN{u=ARGV[1]+0; t=ARGV[2]+0; p=u*100/t; c=(p<50)?\"\\033[32m\":(p<80)?\"\\033[33m\":\"\\033[31m\"; printf \"%.2f GiB / %.2f GiB (%s%.2f%%\\033[0m)\\n\", u/1073741824, t/1073741824, c, p}' $(cat /sys/class/drm/card1/device/mem_info_vram_used) $(cat /sys/class/drm/card1/device/mem_info_vram_total)"
+            "text": "awk 'BEGIN{u=ARGV[1]+0; t=ARGV[2]+0; p=u*100/t; c=(p<50)?\"\\033[32m\":(p<80)?\"\\033[33m\":\"\\033[31m\"; printf \"%.2f GiB / %.2f GiB (%s%.2f%%\\033[0m)\\n\", u/1073741824, t/1073741824, c, p}' $(cat /sys/class/drm/card*/device/mem_info_vram_used) $(cat /sys/class/drm/card*/device/mem_info_vram_total)"
         },
         {
             "type": "memory",
