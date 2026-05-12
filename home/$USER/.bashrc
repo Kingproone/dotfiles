@@ -140,7 +140,7 @@ archcleanup() {
     printf "\033[1;32mRemoving mirrorlist pacnew files...\033[0m\n"
     sudo rm -f /etc/pacman.d/*.pacnew
 
-    if command -v flatpak &>/dev/null && flatpak list --app 2>/dev/null | grep -q .; then
+    if command -v flatpak &>/dev/null; then
         printf "\033[1;32mCleaning unused Flatpak runtimes and repairing stale refs...\033[0m\n"
         flatpak uninstall --unused -y 2>/dev/null || true
         flatpak repair --user 2>/dev/null || true
