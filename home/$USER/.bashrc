@@ -331,7 +331,7 @@ archupdate() {
         fi
     fi
 
-    # upgrade using topgrade, alternative to the yay and flatpak blocks
+    # upgrade using topgrade, alternative to the following update blocks
 #    printf "\033[1;34mRunning system upgrade...\033[0m\n"
 #    if ! topgrade --no-self-update -y; then
 #        printf "\033[1;31m❌ Upgrade failed. Check the log for details: /var/log/pacman.log\033[0m\n" >&2
