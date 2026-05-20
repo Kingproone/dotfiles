@@ -221,7 +221,7 @@ mirrorranking() {
 
 # list available updates if the source is used
 availableupdates() {
-    local updates aur_updates chaotic_pkgs official_pkgs appimage_output
+    local updates aur_updates chaotic_pkgs official_pkgs appimage_output total installed
     local official_count=0 chaotic_count=0 aur_count=0 flat_count=0 appimage_count=0
 
     aur_updates=$(yay -Quq --aur 2>/dev/null)
@@ -260,7 +260,9 @@ availableupdates() {
         fi
     fi
 
-    printf "\n\033[1;33m→ Total updates available: %d\033[0m\n" $((official_count + chaotic_count + aur_count + flat_count + appimage_count))
+    total=$(( official_count + chaotic_count + aur_count + flat_count + appimage_count ))
+    installed=$(( $(pacman -Qq 2>/dev/null | wc -l) + $(flatpak list --app 2>/dev/null | wc -l) ))
+    printf "\n\033[1;33m→ Total updates available: %d (~%s%%)\033[0m\n" "$total" "$(awk "BEGIN {printf \"%.2f\", $total / $installed * 100}")"
 }
 
 # for a graphical approach check out: https://github.com/dhruv8sh/arch-update-checker
