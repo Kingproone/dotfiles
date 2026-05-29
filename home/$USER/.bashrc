@@ -221,8 +221,9 @@ mirrorranking() {
 
 # list available updates if the source is used
 availableupdates() {
-    local updates aur_updates chaotic_pkgs official_pkgs appimage_output total installed
-    local official_count=0 chaotic_count=0 aur_count=0 flat_count=0 appimage_count=0
+    local updates aur_updates chaotic_pkgs official_pkgs appimage_output # data gathering
+    local official_count=0 chaotic_count=0 aur_count=0 flat_count=0 appimage_count=0  # counters
+    local total installed percent update_color                 # summary
 
     aur_updates=$(yay -Quq --aur 2>/dev/null)
     updates=$(checkupdates 2>/dev/null)
@@ -262,7 +263,17 @@ availableupdates() {
 
     total=$(( official_count + chaotic_count + aur_count + flat_count + appimage_count ))
     installed=$(( $(pacman -Qq 2>/dev/null | wc -l) + $(flatpak list --app 2>/dev/null | wc -l) ))
-    printf "\n\033[1;33m→ Total updates available: %d (~%s%%)\033[0m\n" "$total" "$(awk "BEGIN {printf \"%.2f\", $total / $installed * 100}")"
+    percent=$(awk "BEGIN {printf \"%.2f\", $total / $installed * 100}")
+
+    if   (( $(awk "BEGIN {print ($percent >= 35)}") )); then
+        update_color="\033[1;31m"       # red
+    elif (( $(awk "BEGIN {print ($percent >= 15)}") )); then
+        update_color="\033[38;5;208m"   # orange
+    else
+        update_color="\033[1;33m"       # yellow
+    fi
+
+    printf "\n${update_color}→ Total updates available: %d (~%s%%)\033[0m\n" "$total" "$percent"
 }
 
 # for a graphical approach check out: https://github.com/dhruv8sh/arch-update-checker
@@ -319,6 +330,11 @@ archupdate() {
         return 0
     fi
 
+    # capture kernel info before upgrade while modules dir is still present
+    local running_ver kernel_pkg
+    running_ver=$(uname -r)
+    kernel_pkg=$(cat "/usr/lib/modules/$running_ver/pkgbase" 2>/dev/null)
+
     # lock file check: abort if actively locked, remove if stale and no process holds it
     local lock=/var/lib/pacman/db.lck
     if [[ -e "$lock" ]]; then
@@ -333,7 +349,7 @@ archupdate() {
         fi
     fi
 
-    # upgrade using topgrade, alternative to the following update blocks
+    # upgrade using topgrade, alternative to the following update blocks (may not support appmanager)
 #    printf "\033[1;34mRunning system upgrade...\033[0m\n"
 #    if ! topgrade --no-self-update -y; then
 #        printf "\033[1;31m❌ Upgrade failed. Check the log for details: /var/log/pacman.log\033[0m\n" >&2
@@ -359,7 +375,7 @@ archupdate() {
     # update appimages if appmanager is found
     if command -v app-manager &>/dev/null; then
         printf "\033[1;34mUpdating AppImage packages...\033[0m\n"
-        app-manager --update-all | cat
+        app-manager --update-all </dev/null | cat
         printf "\033[1;32mAppImage update complete.\033[0m\n"
     fi
 
@@ -392,9 +408,7 @@ archupdate() {
     fi
 
     # check if a new kernel has been installed for the currently running kernel family
-    local running_ver kernel_pkg new_ver
-    running_ver=$(uname -r)
-    kernel_pkg=$(cat "/usr/lib/modules/$running_ver/pkgbase" 2>/dev/null)
+    local new_ver
     new_ver=$(for d in /usr/lib/modules/*/; do
         [[ -d "$d" ]] || continue
         ver=${d%/}; ver=${ver##*/}
@@ -405,7 +419,7 @@ archupdate() {
     if [[ -n "$new_ver" ]]; then
         printf "\033[1;33mKernel updated (%s -> %s). Reboot? [Y/n] \033[0m" "$running_ver" "$new_ver"
         read -r reboot_answer
-        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && reboot
+        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot
     fi
 
     # processes using stale shared libraries require a soft-reboot to reload system services
@@ -423,7 +437,7 @@ archupdate() {
         printf "\033[1;33mDesktop environment packages updated. Log out and back in? [Y/n] \033[0m"
         read -r logout_answer
         # after the && add your DE specific logout code, this is for plasma
-        [[ -z "$logout_answer" || "$logout_answer" == [yY] ]] && qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout
+        [[ -z "$logout_answer" || "$logout_answer" == [yY] ]] && plasmalogout
     fi
 
     # check for failed systemd units after upgrade and attempt to restart them
@@ -456,6 +470,11 @@ purge() {
     [[ "$purge_answer" == [yY] ]] && yay -Rnsc "$@" || printf "\n  Purge cancelled.\n\n"
 }
 
+# Plasma, no dialog; defined as functions so they can be called from scripts,
+# in the kernel and DE blocks of archupdate, aliased shorhand commands
+plasmashutdown() { qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logoutAndShutdown; }
+plasmalogout()   { qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout; }
+plasmareboot()   { qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logoutAndReboot; }
 
 #   Bindings   #
 ################
@@ -531,16 +550,16 @@ alias sre='systemctl soft-reboot'
 alias lok='loginctl lock-session'
 alias zz='systemctl suspend'        # sleep
 # Plasma, no dialog
-alias po='qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logoutAndShutdown'
-alias re='qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logoutAndReboot'
-alias out='qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout'
+alias po='plasmashutdown'
+alias out='plasmalogout'
+alias re='plasmareboot'
 # Plasma, with confirmation *d*ialog
 alias pod='qdbus6 org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptShutDown'
 alias red='qdbus6 org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptReboot'
 alias outd='qdbus6 org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptLogout'
-# Plasma, shell restart
+# Plasmashell restart, both work slightly differently
 alias plasma='systemctl --user restart plasma-plasmashell'
-alias kde='plasma'
+alias kde='kquitapp6 plasmashell && kstart plasmashell'
 
 #     package management
 alias up='archupdate'
