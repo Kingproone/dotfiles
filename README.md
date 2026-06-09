@@ -298,6 +298,12 @@ https://medium.com/@adamtowers/how-to-customize-your-terminal-and-bash-profile-f
 <details>
 <summary><b> Grub </b></summary><br />
 
+1. download the theme
+2. my_theme into `/boot/grub/themes/`
+3. merge `/etc/default/grub` into your system
+4. add 40_customs entries into `/etc/grub.d`
+5. regenerate your config
+
 Regenerate ```grub.cfg``` with:
 ```
 sudo grub-mkconfig -o /boot/grub/grub.cfg
