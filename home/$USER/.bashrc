@@ -104,14 +104,13 @@ export XDG_CACHE_HOME="$HOME/.cache"
 
 # based on: https://github.com/ChrisTitusTech/linutil/blob/main/core/tabs/system-setup/system-cleanup.sh
 archcleanup() {
-    local before after freed orphans
-
     # cache sudo credentials upfront to avoid mid-run prompts, no equivalent for doas
     sudo -v || { printf "\033[1;31mFailed to obtain sudo credentials. Aborting.\033[0m\n"; return 1; }
 
     printf "\033[1;32mPerforming system cleanup...\033[0m\n"
 
     # snapshot available space before cleanup for freed space calc
+    local before
     before=$(df --output=avail / | tail -n1)
 
     printf "\033[1;32mRemoving leftover download directories from the package cache...\033[0m\n"
@@ -126,6 +125,7 @@ archcleanup() {
     sudo paccache -ruk0
 
     printf "\033[1;32mChecking for orphaned packages...\033[0m\n"
+    local orphans
     orphans=$(pacman -Qtdq 2>/dev/null)
     [ -n "$orphans" ] && echo "$orphans" | sudo pacman -Rns - --noconfirm
 
@@ -159,6 +159,7 @@ archcleanup() {
     sudo journalctl --vacuum-time=3d
     journalctl --user --vacuum-time=3d # must run as user, not root
 
+    local cleanup_answer
     printf "\033[1;33mEmpty the trash and clean cache files (over 5 days old and thumbnails excluded)? [y/N] \033[0m"
     read -r cleanup_answer
     if [[ "$cleanup_answer" == [yY] ]]; then
@@ -166,6 +167,7 @@ archcleanup() {
         [ -d "$HOME/.cache" ] && find "$HOME/.cache/" -type f -atime +5 ! -path "$HOME/.cache/thumbnails/*" -delete
     fi
 
+    local dev_answer
     if command -v npm &>/dev/null || command -v pip &>/dev/null || [ -d "$HOME/.cargo/registry" ]; then
         printf "\033[1;33mClean developer caches (cargo, npm, pip)? [y/N] \033[0m"
         read -r dev_answer
@@ -179,6 +181,7 @@ archcleanup() {
     # fstrim is autorun by default on arch on a weekly basis
     # to confirm: systemctl status fstrim.timer
 
+    local after freed
     after=$(df --output=avail / | tail -n1)
     freed=$(awk "BEGIN {printf \"%.2f\", ($after - $before) / 1048576}")
     printf "\033[1;32m✅ Cleanup complete. Freed %s GiB. Current disk usage:\033[0m\n" "$freed"
@@ -190,7 +193,6 @@ archcleanup() {
 # rate-mirrors supports other distros as well, available in the extra repos
 mirrorranking() {
     local rateinstall_answer
-
     if ! command -v rate-mirrors &>/dev/null; then
         printf "\033[1;31mrate-mirrors not found. Install it? [Y/n] \033[0m"
         read -r rateinstall_answer
@@ -221,14 +223,14 @@ mirrorranking() {
 
 # list available updates if the source is used
 availableupdates() {
-    local updates aur_updates chaotic_pkgs official_pkgs appimage_output # data gathering
     local official_count=0 chaotic_count=0 aur_count=0 flat_count=0 appimage_count=0  # counters
-    local total installed percent update_color                 # summary
 
-    aur_updates=$(yay -Quq --aur 2>/dev/null)
+    # gather all data upfront before any output
+    local updates official_pkgs chaotic_pkgs aur_pkgs
     updates=$(checkupdates 2>/dev/null)
-    chaotic_pkgs=$(pacman -Sl chaotic-aur 2>/dev/null | awk '{print $2}')
     official_pkgs=$(pacman -Sl core extra multilib endeavouros 2>/dev/null | awk '{print $2}')
+    chaotic_pkgs=$(pacman -Sl chaotic-aur 2>/dev/null | awk '{print $2}')
+    aur_pkgs=$(yay -Quq --aur 2>/dev/null)
 
     printf "\033[1;34m→ Official updates:\033[0m\n"
     official_count=$(grep -Fwf <(printf '%s\n' "$official_pkgs") <<< "$updates" | grep -Fwvf <(printf '%s\n' "$chaotic_pkgs") | tee /dev/tty | wc -l)
@@ -240,9 +242,9 @@ availableupdates() {
         printf "\033[1;34m→ %d package(s)\033[0m\n" "$chaotic_count"
     fi
 
-    if [[ -n "$aur_updates" ]]; then
+    if [[ -n "$aur_pkgs" ]]; then
         printf "\n\033[1;34m→ AUR updates:\033[0m\n"
-        aur_count=$(printf "%s\n" "$aur_updates" | tee /dev/tty | wc -l)
+        aur_count=$(printf "%s\n" "$aur_pkgs" | tee /dev/tty | wc -l)
         printf "\033[1;34m→ %d package(s)\033[0m\n" "$aur_count"
     fi
 
@@ -252,6 +254,7 @@ availableupdates() {
         printf "\033[1;34m→ %d package(s)\033[0m\n" "$flat_count"
     fi
 
+    local appimage_output
     if command -v app-manager &>/dev/null; then
         appimage_output=$(app-manager --update-check 2>/dev/null)
         if [[ "$appimage_output" != *"No installed apps"* ]]; then
@@ -261,10 +264,10 @@ availableupdates() {
         fi
     fi
 
+    local total installed percent update_color
     total=$(( official_count + chaotic_count + aur_count + flat_count + appimage_count ))
     installed=$(( $(pacman -Qq 2>/dev/null | wc -l) + $(flatpak list --app 2>/dev/null | wc -l) ))
     percent=$(awk "BEGIN {printf \"%.2f\", $total / $installed * 100}")
-
     if   (( $(awk "BEGIN {print ($percent >= 35)}") )); then
         update_color="\033[1;31m"       # red
     elif (( $(awk "BEGIN {print ($percent >= 15)}") )); then
@@ -432,7 +435,7 @@ archupdate() {
     if [[ -n "$new_ver" ]]; then
         printf "\033[1;33mKernel updated (%s -> %s). Reboot? [Y/n] \033[0m" "$running_ver" "$new_ver"
         read -r reboot_answer
-        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot # change this your to DE specific reboot code
+        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot # change this to your DE specific reboot code
     fi
 
     # processes using stale shared libraries require a soft-reboot to reload system services
