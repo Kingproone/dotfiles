@@ -432,7 +432,7 @@ archupdate() {
     if [[ -n "$new_ver" ]]; then
         printf "\033[1;33mKernel updated (%s -> %s). Reboot? [Y/n] \033[0m" "$running_ver" "$new_ver"
         read -r reboot_answer
-        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot # change this your DE specific reboot code
+        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot # change this your to DE specific reboot code
     fi
 
     # processes using stale shared libraries require a soft-reboot to reload system services
@@ -450,7 +450,7 @@ archupdate() {
     if grep -qE "^\[$today.*\[ALPM\] upgraded.*($de_packages)" /var/log/pacman.log; then
         printf "\033[1;33mDesktop environment packages updated. Log out and back in? [Y/n] \033[0m"
         read -r logout_answer
-        [[ -z "$logout_answer" || "$logout_answer" == [yY] ]] && plasmalogout # change this your DE specific logout code
+        [[ -z "$logout_answer" || "$logout_answer" == [yY] ]] && plasmalogout # change this to your DE specific logout code
     fi
 
     # check for failed systemd units after upgrade and attempt to restart them
