@@ -6,4 +6,4 @@ exec tail -n +3 $0
 
 menuentry 'Reboot' --class restart { reboot }
 
-menuentry 'Shut Down' --class shutdown { halt }
+menuentry 'Shut Down' --class shutdown { shutdown }
