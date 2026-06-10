@@ -280,7 +280,7 @@ availableupdates() {
 # based on: https://www.reddit.com/r/archlinux/comments/1lkxcio/arch_news_before_update/
 archupdate() {
     # require at least 3 GiB free space before upgrading
-    local root_avail
+    local root_avail clean_answer
     root_avail=$(df -k --output=avail / | tail -n1)
     if [[ $root_avail -lt 3145728 ]]; then
         printf "\033[1;31m⚠️  Less than 3 GiB free on root partition.\033[0m\n" >&2
@@ -299,8 +299,8 @@ archupdate() {
     fi
 
     # show the 2 latest Arch Linux news urls using rss, so you won't be surprised when your system gets borked
-    printf "\033[1;34m📰 Fetching latest Arch Linux news...\033[0m\n"
     local news_output
+    printf "\033[1;34m📰 Fetching latest Arch Linux news...\033[0m\n"
     news_output=$(curl -s --compressed --fail --connect-timeout 3 --max-time 8 --retry 2 --retry-delay 1 \
         https://archlinux.org/feeds/news/ 2>/dev/null \
         | grep -oP '(?<=<link>)https://archlinux\.org/news/[^<]+' | head -n 2 | sed 's|^| • |')
@@ -311,9 +311,9 @@ archupdate() {
     fi
 
     # check mirrorlist age and prompt for ranking if older than 2 weeks
+    local mirror_age mirror_answer
     local mirror_check="/etc/pacman.d/mirrorlist"
     if [[ -f "$mirror_check" ]]; then
-        local mirror_age
         mirror_age=$(( ($(date +%s) - $(stat -c %Y "$mirror_check")) / 86400 ))
         if [[ $mirror_age -gt 14 ]]; then
             printf "\033[1;33m⚠️  Mirrorlist is %d days old. Rank all mirrors now? [Y/n] \033[0m" "$mirror_age"
@@ -323,6 +323,7 @@ archupdate() {
     fi
 
     # prompt to continue with the upgrade
+    local answer
     printf "\033[1;33mContinue with the system upgrade? [Y/n] \033[0m"
     read -r answer
     if [[ -n "$answer" && "$answer" != [yY] ]]; then
@@ -330,15 +331,27 @@ archupdate() {
         return 0
     fi
 
+    # inhibit sleep for the duration of the upgrade, test with: systemd-inhibit --list
+    local inhibit_pid
+    { systemd-inhibit --what=sleep:idle --who="archupdate" --why="System upgrade in progress" --mode=block sleep infinity & inhibit_pid=$!; } 2>/dev/null
+    trap "
+        kill $inhibit_pid 2>/dev/null
+        wait $inhibit_pid 2>/dev/null
+        printf '\n\033[1m🚫 Upgrade cancelled.\033[0m\n'
+        trap - INT RETURN
+        exit 0
+    " INT
+    trap "kill $inhibit_pid 2>/dev/null; wait $inhibit_pid 2>/dev/null" RETURN
+
     # capture kernel info before upgrade while modules dir is still present
     local running_ver kernel_pkg
     running_ver=$(uname -r)
     kernel_pkg=$(cat "/usr/lib/modules/$running_ver/pkgbase" 2>/dev/null)
 
     # lock file check: abort if actively locked, remove if stale and no process holds it
+    local lock_pid
     local lock=/var/lib/pacman/db.lck
     if [[ -e "$lock" ]]; then
-        local lock_pid
         lock_pid=$(sudo fuser "$lock" 2>/dev/null)
         if [[ -n "$lock_pid" ]]; then
             printf "\033[1;31m🔒 Pacman is actively running (lock held by PID %s). Wait for it to finish.\033[0m\n" "$lock_pid" >&2
@@ -381,10 +394,10 @@ archupdate() {
 
     # check for .pacnew files and save list for manual review
     # /etc/pacman.d excluded, updated by rate-mirrors and cleaned up by archcleanup
-    local pacnew_found
+    local pacnew_found pacnew_list
     pacnew_found=$(find /etc -name "*.pacnew" -not -path "/etc/pacman.d/*" 2>/dev/null)
     if [[ -n "$pacnew_found" ]]; then
-        local pacnew_list="$HOME/pacnew-$(date +%Y-%m-%d_%H-%M-%S).txt"
+        pacnew_list="$HOME/pacnew-$(date +%Y-%m-%d_%H-%M-%S).txt"
         printf "%s\n" "$pacnew_found" > "$pacnew_list"
         printf "\033[1;33m⚠️  .pacnew files found. Review and merge manually, list saved to:\n    %s\033[0m\n" "$pacnew_list"
     fi
@@ -408,7 +421,7 @@ archupdate() {
     fi
 
     # check if a new kernel has been installed for the currently running kernel family
-    local new_ver
+    local new_ver reboot_answer
     new_ver=$(for d in /usr/lib/modules/*/; do
         [[ -d "$d" ]] || continue
         ver=${d%/}; ver=${ver##*/}
@@ -419,10 +432,11 @@ archupdate() {
     if [[ -n "$new_ver" ]]; then
         printf "\033[1;33mKernel updated (%s -> %s). Reboot? [Y/n] \033[0m" "$running_ver" "$new_ver"
         read -r reboot_answer
-        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot
+        [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot # change this your DE specific reboot code
     fi
 
     # processes using stale shared libraries require a soft-reboot to reload system services
+    local soft_reboot_answer
     if find /proc -maxdepth 2 -name maps 2>/dev/null | sudo xargs --no-run-if-empty grep -l '\.so.*deleted' 2>/dev/null | grep -q .; then
         printf "\033[1;33mProcesses are using outdated shared libraries. Soft-reboot? [Y/n] \033[0m"
         read -r soft_reboot_answer
@@ -430,14 +444,13 @@ archupdate() {
     fi
 
     # DE packages updated today, a logout/login is sufficient to reload the session
-    local today de_packages
+    local today de_packages logout_answer
     today=$(date +'%Y-%m-%d')
     de_packages='budgie-desktop|cinnamon|cosmic-session|deepin-session|enlightenment|gnome-shell|hyprland|i3-wm|labwc|lxqt-session|lxsession|mate-session-manager|niri|pantheon-session|plasma-desktop|plasma-workspace|river|sway|ukui-session-manager|wayfire|xfce4-session|xfwm4'
     if grep -qE "^\[$today.*\[ALPM\] upgraded.*($de_packages)" /var/log/pacman.log; then
         printf "\033[1;33mDesktop environment packages updated. Log out and back in? [Y/n] \033[0m"
         read -r logout_answer
-        # after the && add your DE specific logout code, this is for plasma
-        [[ -z "$logout_answer" || "$logout_answer" == [yY] ]] && plasmalogout
+        [[ -z "$logout_answer" || "$logout_answer" == [yY] ]] && plasmalogout # change this your DE specific logout code
     fi
 
     # check for failed systemd units after upgrade and attempt to restart them
