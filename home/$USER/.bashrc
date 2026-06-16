@@ -302,13 +302,18 @@ archupdate() {
     fi
 
     # show the 2 latest Arch Linux news urls using rss, so you won't be surprised when your system gets borked
-    local news_output
+    local news_output item link pubdate news_date
     printf "\033[1;34m📰 Fetching latest Arch Linux news...\033[0m\n"
     news_output=$(curl -s --compressed --fail --connect-timeout 3 --max-time 8 --retry 2 --retry-delay 1 \
         https://archlinux.org/feeds/news/ 2>/dev/null \
-        | grep -oP '(?<=<link>)https://archlinux\.org/news/[^<]+' | head -n 2 | sed 's|^| • |')
+        | tr -d '\r\n' | grep -oP '<item>.*?</item>' | head -n 2)
     if [[ -n "$news_output" ]]; then
-        printf "%s\n" "$news_output"
+        while read -r item; do
+            link=$(grep -oP '(?<=<link>)https://archlinux\.org/news/[^<]+' <<< "$item")
+            pubdate=$(grep -oP '(?<=<pubDate>)[^<]+' <<< "$item")
+            news_date=$(date -d "$pubdate" +" (%y.%m.%d)" 2>/dev/null)
+            printf " • %s%s\n" "$link" "$news_date"
+        done <<< "$news_output"
     else
         printf "\033[1;31mError fetching news; check manually: https://archlinux.org/news/\033[0m\n"
     fi
