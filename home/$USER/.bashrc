@@ -309,6 +309,7 @@ archupdate() {
         | tr -d '\r\n' | grep -oP '<item>.*?</item>' | head -n 2)
     if [[ -n "$news_output" ]]; then
         while read -r item; do
+            # article publishing date to the end of the line
             link=$(grep -oP '(?<=<link>)https://archlinux\.org/news/[^<]+' <<< "$item")
             pubdate=$(grep -oP '(?<=<pubDate>)[^<]+' <<< "$item")
             news_date=$(date -d "$pubdate" +" (%y.%m.%d)" 2>/dev/null)
