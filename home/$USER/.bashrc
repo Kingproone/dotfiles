@@ -236,6 +236,7 @@ availableupdates() {
     official_count=$(grep -Fwf <(printf '%s\n' "$official_pkgs") <<< "$updates" | grep -Fwvf <(printf '%s\n' "$chaotic_pkgs") | tee /dev/tty | wc -l)
     printf "\033[1;34m→ %d package(s)\033[0m\n" "$official_count"
 
+    # if a package is available through both an official channel and chaotic, it will be listed here, cantfix, count is correct tho
     if [[ -n "$chaotic_pkgs" ]]; then
         printf "\n\033[1;34m→ Chaotic-AUR updates:\033[0m\n"
         chaotic_count=$(grep -Fwf <(printf '%s\n' "$chaotic_pkgs") <<< "$updates" | tee /dev/tty | wc -l)
@@ -302,19 +303,23 @@ archupdate() {
     fi
 
     # show the 2 latest Arch Linux news urls using rss, so you won't be surprised when your system gets borked
-    local news_output item link pubdate news_date
-    printf "\033[1;34m📰 Fetching latest Arch Linux news...\033[0m\n"
-    news_output=$(curl -s --compressed --fail --connect-timeout 3 --max-time 8 --retry 2 --retry-delay 1 \
+    # CTRL + click or right click + open to view the entries (or set up direct first click to open)
+    local item_blocks item link pubdate date_short
+    printf "\033[1;34m📰 Latest Arch Linux news:\033[0m\n"
+    # description text is entity-escaped (&lt;p&gt;) so no stray </item> tags appear inside
+    # a block — safe to collapse newlines first, then extract each <item>...</item> intact
+    item_blocks=$(curl -s --compressed --fail --connect-timeout 3 --max-time 8 --retry 2 --retry-delay 1 \
         https://archlinux.org/feeds/news/ 2>/dev/null \
         | tr -d '\r\n' | grep -oP '<item>.*?</item>' | head -n 2)
-    if [[ -n "$news_output" ]]; then
+    if [[ -n "$item_blocks" ]]; then
         while read -r item; do
-            # article publishing date to the end of the line
             link=$(grep -oP '(?<=<link>)https://archlinux\.org/news/[^<]+' <<< "$item")
             pubdate=$(grep -oP '(?<=<pubDate>)[^<]+' <<< "$item")
-            news_date=$(date -d "$pubdate" +" (%y.%m.%d)" 2>/dev/null)
-            printf " • %s%s\n" "$link" "$news_date"
-        done <<< "$news_output"
+            # guard: date -d "" returns today rather than failing on empty input
+            date_short=""
+            [[ -n "$pubdate" ]] && date_short=$(date -d "$pubdate" +%y.%m.%d 2>/dev/null)
+            printf " • %s: %s\n" "$date_short" "$link"
+        done <<< "$item_blocks"
     else
         printf "\033[1;31mError fetching news; check manually: https://archlinux.org/news/\033[0m\n"
     fi
