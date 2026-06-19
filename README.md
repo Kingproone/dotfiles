@@ -67,6 +67,9 @@ COMPRESSLZ4=(lz4 -q -T0)
 ```
 > the rest of the compressors can't be parallelized
 </details>
+
+yay: https://jguer.github.io/yay/lua.html
+
 </details>
 
 ---
