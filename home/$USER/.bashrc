@@ -1,13 +1,14 @@
-#   ~/.bashrc   #
-#################
+###########################
+#   /home/$USER/.bashrc   #
+###########################
 
-#  Packages used, install once before using this config:
+#  Packages used, install for the full functionality:
+#
+#    htop (aliased for system monitoring) use whatever *top you like
+#      sudo pacman -S htop
 #
 #    pacman-contrib  (checkupdates, paccache)
 #      sudo pacman -S pacman-contrib
-#
-#    yay  (AUR helper, used throughout)  (pre-installed on EOS)
-#      https://github.com/Jguer/yay#installation
 #
 #    rate-mirrors  (mirror ranking)
 #      sudo pacman -S rate-mirrors
@@ -15,26 +16,34 @@
 #    fzf  (fuzzy package search aliases)
 #      sudo pacman -S fzf
 #
-#    fastfetch  (terminal info on spawn)
-#      sudo pacman -S fastfetch
+#    termdown  (td/tdh aliases)
+#      sudo pacman -S termdown
+#
+#    scrcpy  (scrcpy/scrcam aliases)
+#      sudo pacman -S scrcpy
 
 #  Optional, features silently skip if not installed:
 #
-#    bash-completion  tab completion  (pre-installed on EOS)
-#      sudo pacman -S bash-completion
-#
-#    flatpak          flatpak update/cleanup blocks
+#    flatpak
 #      sudo pacman -S flatpak
 #
+#    appmanager  (appimage updates)
+#      in the aur or chaotic-aur
+#
 #    topgrade, instead of yay and flatpak separately
-#
-#    appmanager (appimage updates)
 
-#  Plasma-specific — non-functional on other DEs:
+#  Typically preinstalled, verify with `pacman -Q <pkg>`
 #
-#    qt6-tools / qdbus6  [pre-installed with Plasma]
-#      po, re, out, pod, red, outd aliases
-#      DE logout in archupdate, replace the command for other DEs
+#    EndeavourOS: yay, bash-completion
+#    CachyOS:     fastfetch, paru (install yay separately if needed or adapt the scripts)
+#    Both:        curl, git (via base-devel)
+
+#  Plasma-specific:
+#
+#    DE logout AND reboot in archupdate, replace the command for other DEs
+#
+#    the following use plasma native packages and calls
+#      po, re, out, pod, red, outd, plasma, kde aliases
 
 #  Output color conventions:
 #
@@ -44,17 +53,19 @@
 #    Red     \033[1;31m  failures, aborts
 #    White   \033[1m     neutral, user choice acknowledgement
 
-#  Comment conventions
+#  Comment conventions:
 #
 #   if the comment or the command is very long/ multi line, put the command before it, otherwise same line
 
 
+############################################
 #   Command to autorun on terminal spawn   #
 ############################################
 
-fastfetch
+command -v fastfetch &>/dev/null && fastfetch
 
 
+#######################
 #   Basic functions   #
 #######################
 
@@ -73,12 +84,8 @@ shopt -s histappend
 # check window size after each command, update LINES and COLUMNS
 shopt -s checkwinsize
 
-# Tell VA-API to use the Mesa driver
-export LIBVA_DRIVER_NAME=radeonsi
-# For VDPAU
-export VDPAU_DRIVER=radeonsi
 
-
+###############
 #   Exports   #
 ###############
 
@@ -99,6 +106,7 @@ export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
 
+#################
 #   Functions   #
 #################
 
@@ -107,64 +115,65 @@ archcleanup() {
     # cache sudo credentials upfront to avoid mid-run prompts, no equivalent for doas
     sudo -v || { printf "\033[1;31mFailed to obtain sudo credentials. Aborting.\033[0m\n"; return 1; }
 
-    printf "\033[1;32mPerforming system cleanup...\033[0m\n"
+    printf "\033[1;34mPerforming system cleanup...\033[0m\n"
 
     # snapshot available space before cleanup for freed space calc
     local before
     before=$(df --output=avail / | tail -n1)
 
-    printf "\033[1;32mRemoving leftover download directories from the package cache...\033[0m\n"
+    printf "\033[1;34mRemoving leftover download directories from the package cache...\033[0m\n"
     if [ -d /var/cache/pacman/pkg ]; then
         sudo find /var/cache/pacman/pkg -type d -name "download-*" -exec rm -rf {} + 2>/dev/null || true
     fi
 
-    printf "\033[1;32mCleaning package cache (keeping last 2 versions)...\033[0m\n"
+    printf "\033[1;34mCleaning package cache (keeping last 2 versions)...\033[0m\n"
     sudo paccache -rk2
 
-    printf "\033[1;32mRemoving uninstalled package cache...\033[0m\n"
+    printf "\033[1;34mRemoving uninstalled package cache...\033[0m\n"
     sudo paccache -ruk0
 
-    printf "\033[1;32mChecking for orphaned packages...\033[0m\n"
+    printf "\033[1;34mChecking for orphaned packages...\033[0m\n"
     local orphans
     orphans=$(pacman -Qtdq 2>/dev/null)
     [ -n "$orphans" ] && echo "$orphans" | sudo pacman -Rns - --noconfirm
 
     # corrupted or missing .git causes yay -Sc to bail
-    printf "\033[1;32mRemoving broken yay AUR cache directories...\033[0m\n"
+    printf "\033[1;34mRemoving broken yay AUR cache directories...\033[0m\n"
     find "$HOME/.cache/yay" -mindepth 1 -maxdepth 1 -type d ! -exec git -C {} rev-parse --git-dir \; -exec rm -rf {} + 2>/dev/null || true
 
-    printf "\033[1;32mCleaning yay cache...\033[0m\n"
+    printf "\033[1;34mCleaning yay cache...\033[0m\n"
     yay -Sc --noconfirm </dev/null
 
     # managed by rate-mirrors separately
-    printf "\033[1;32mRemoving mirrorlist pacnew files...\033[0m\n"
+    printf "\033[1;34mRemoving mirrorlist pacnew files...\033[0m\n"
     sudo rm -f /etc/pacman.d/*.pacnew
 
     if command -v flatpak &>/dev/null; then
-        printf "\033[1;32mCleaning unused Flatpak runtimes and repairing stale refs...\033[0m\n"
+        printf "\033[1;34mCleaning unused Flatpak runtimes and repairing stale refs...\033[0m\n"
         flatpak uninstall --unused -y 2>/dev/null || true
         flatpak repair --user 2>/dev/null || true
     fi
 
     if [ -d /var/lib/systemd/coredump ]; then
-        printf "\033[1;32mRemoving coredumps older than 3 days...\033[0m\n"
+        printf "\033[1;34mRemoving coredumps older than 3 days...\033[0m\n"
         sudo find /var/lib/systemd/coredump -type f -mtime +3 -delete 2>/dev/null || true
     fi
 
     # /tmp is tmpfs, clears on reboot
-    printf "\033[1;32mCleaning /var/tmp files older than 5 days...\033[0m\n"
+    printf "\033[1;34mCleaning /var/tmp files older than 5 days...\033[0m\n"
     [ -d /var/tmp ] && sudo find /var/tmp -type f -atime +5 -delete
 
-    printf "\033[1;32mVacuuming systemd journal older than 3 days (system + user)...\033[0m\n"
+    printf "\033[1;34mVacuuming systemd journal older than 3 days (system + user)...\033[0m\n"
     sudo journalctl --vacuum-time=3d
     journalctl --user --vacuum-time=3d # must run as user, not root
 
     local cleanup_answer
-    printf "\033[1;33mEmpty the trash and clean cache files (over 5 days old and thumbnails excluded)? [y/N] \033[0m"
+    printf "\033[1;33mEmpty the trash and clean the cache files? (over 5 days old and thumbnails excluded) [Y/n] \033[0m"
     read -r cleanup_answer
-    if [[ "$cleanup_answer" == [yY] ]]; then
-        [ -d "$HOME/.local/share/Trash" ] && find "$HOME/.local/share/Trash" -mindepth 1 -delete
-        [ -d "$HOME/.cache" ] && find "$HOME/.cache/" -type f -atime +5 ! -path "$HOME/.cache/thumbnails/*" -delete
+    if [[ -z "$cleanup_answer" || "$cleanup_answer" == [yY] ]]; then
+        find "$HOME/.local/share/Trash/files" -mindepth 1 -atime +5 -delete 2>/dev/null
+        find "$HOME/.local/share/Trash/info" -mindepth 1 -atime +5 -delete 2>/dev/null
+        find "$HOME/.cache/" -type f -atime +5 ! -path "$HOME/.cache/thumbnails/*" -delete 2>/dev/null
     fi
 
     local dev_answer
@@ -190,7 +199,7 @@ archcleanup() {
 
 # rank pacman mirrors using rate-mirrors, to restore a backup run the below line
 # sudo cp /etc/pacman.d/mirrorlist.bak /etc/pacman.d/mirrorlist
-# rate-mirrors supports other distros as well, available in the extra repos
+# rate-mirrors supports other distros as well, available from the extra repos
 mirrorranking() {
     local rateinstall_answer
     if ! command -v rate-mirrors &>/dev/null; then
@@ -211,6 +220,12 @@ mirrorranking() {
         sudo cp /etc/pacman.d/endeavouros-mirrorlist /etc/pacman.d/endeavouros-mirrorlist.bak
         rate-mirrors --save=/tmp/endeavouros-mirrorlist endeavouros && sudo mv /tmp/endeavouros-mirrorlist /etc/pacman.d/endeavouros-mirrorlist
     fi
+
+    # if [[ -f "/etc/pacman.d/cachyos-mirrorlist" ]]; then
+    #     printf "\033[1;34mRanking CachyOS mirrors...\033[0m\n"
+    #     sudo cp /etc/pacman.d/cachyos-mirrorlist /etc/pacman.d/cachyos-mirrorlist.bak
+    #     rate-mirrors --save=/tmp/cachyos-mirrorlist cachyos && sudo mv /tmp/cachyos-mirrorlist /etc/pacman.d/cachyos-mirrorlist
+    # fi
 
     if [[ -f "/etc/pacman.d/chaotic-mirrorlist" ]]; then
         printf "\033[1;34mRanking Chaotic-AUR mirrors...\033[0m\n"
@@ -280,21 +295,21 @@ availableupdates() {
     printf "\n${update_color}→ Total updates available: %d (~%s%%)\033[0m\n" "$total" "$percent"
 }
 
-# for a graphical approach check out: https://github.com/dhruv8sh/arch-update-checker
+# gui alternative: https://github.com/Seafoam-Labs/Shelly-ALPM
+# or widget: https://github.com/dhruv8sh/arch-update-checker
 # based on: https://www.reddit.com/r/archlinux/comments/1lkxcio/arch_news_before_update/
 archupdate() {
     # require at least 3 GiB free space before upgrading
     local root_avail clean_answer
     root_avail=$(df -k --output=avail / | tail -n1)
     if [[ $root_avail -lt 3145728 ]]; then
-        printf "\033[1;31m⚠️  Less than 3 GiB free on root partition.\033[0m\n" >&2
-        printf "\033[1;33mRun system cleanup now? [Y/n] \033[0m"
+        printf "\033[1;33m⚠️ Less than 3 GiB free on root partition. Run system cleanup now? [Y/n] \033[0m" >&2
         read -r clean_answer
         if [[ -z "$clean_answer" || "$clean_answer" == [yY] ]]; then
             archcleanup
             root_avail=$(df -k --output=avail / | tail -n1)
             if [[ $root_avail -lt 3145728 ]]; then
-                printf "\033[1;31m⛔ Still less than 3 GiB free. Free up space manually before upgrading.\033[0m\n" >&2
+                printf "\033[1;31m⛔ Still less than 3 GiB available. Free up space manually before upgrading.\033[0m\n" >&2
                 return 1
             fi
         else
@@ -303,7 +318,7 @@ archupdate() {
     fi
 
     # show the 2 latest Arch Linux news urls using rss, so you won't be surprised when your system gets borked
-    # CTRL + click or right click + open to view the entries (or set up direct first click to open)
+    # Ctrl + click or right click + open to view the entries (or set up direct first click to open)
     local item_blocks item link pubdate date_short
     printf "\033[1;34m📰 Latest Arch Linux news:\033[0m\n"
     # description text is entity-escaped (&lt;p&gt;) so no stray </item> tags appear inside
@@ -330,7 +345,7 @@ archupdate() {
     if [[ -f "$mirror_check" ]]; then
         mirror_age=$(( ($(date +%s) - $(stat -c %Y "$mirror_check")) / 86400 ))
         if [[ $mirror_age -gt 14 ]]; then
-            printf "\033[1;33m⚠️  Mirrorlist is %d days old. Rank all mirrors now? [Y/n] \033[0m" "$mirror_age"
+            printf "\033[1;33m⚠️ Mirrorlist is %d days old. Rank all mirrors now? [Y/n] \033[0m" "$mirror_age"
             read -r mirror_answer
             [[ -z "$mirror_answer" || "$mirror_answer" == [yY] ]] && mirrorranking
         fi
@@ -347,7 +362,7 @@ archupdate() {
 
     # inhibit sleep for the duration of the upgrade, test with: systemd-inhibit --list
     local inhibit_pid
-    { systemd-inhibit --what=sleep:idle --who="archupdate" --why="System upgrade in progress" --mode=block sleep infinity & inhibit_pid=$!; } 2>/dev/null
+    { systemd-inhibit --what=sleep --who="archupdate" --why="System upgrade in progress" --mode=block sleep infinity & inhibit_pid=$!; } 2>/dev/null
     trap "
         kill $inhibit_pid 2>/dev/null
         wait $inhibit_pid 2>/dev/null
@@ -376,7 +391,7 @@ archupdate() {
         fi
     fi
 
-    # upgrade using topgrade, alternative to the following update blocks (may not support appmanager)
+    # upgrade using topgrade, alternative to the following update blocks (may not support appimages, untested)
 #    printf "\033[1;34mRunning system upgrade...\033[0m\n"
 #    if ! topgrade --no-self-update -y; then
 #        printf "\033[1;31m❌ Upgrade failed. Check the log for details: /var/log/pacman.log\033[0m\n" >&2
@@ -395,14 +410,14 @@ archupdate() {
     # update flatpaks if found
     if command -v flatpak &>/dev/null; then
         printf "\033[1;34mUpdating Flatpak packages...\033[0m\n"
-        flatpak update -y </dev/null | cat
+        flatpak update -y --noninteractive </dev/null
         printf "\033[1;32mFlatpak update complete.\033[0m\n"
     fi
 
     # update appimages if appmanager is found
     if command -v app-manager &>/dev/null; then
         printf "\033[1;34mUpdating AppImage packages...\033[0m\n"
-        app-manager --update-all </dev/null | cat
+        app-manager --update-all </dev/null
         printf "\033[1;32mAppImage update complete.\033[0m\n"
     fi
 
@@ -413,14 +428,13 @@ archupdate() {
     if [[ -n "$pacnew_found" ]]; then
         pacnew_list="$HOME/pacnew-$(date +%Y-%m-%d_%H-%M-%S).txt"
         printf "%s\n" "$pacnew_found" > "$pacnew_list"
-        printf "\033[1;33m⚠️  .pacnew files found. Review and merge manually, list saved to:\n    %s\033[0m\n" "$pacnew_list"
+        printf "\033[1;33m⚠️ .pacnew files found. Review and merge manually, list saved to:\n    %s\033[0m\n" "$pacnew_list"
     fi
 
     # check if root partition is full (0 bytes free) before any reboot
     root_avail=$(df -k --output=avail / | tail -n1)
     if [[ $root_avail -eq 0 ]]; then
-        printf "\033[1;31m⛔ Root partition full, the system may not boot!\033[0m\n" >&2
-        printf "\033[1;33mRun system cleanup now? [Y/n] \033[0m"
+        printf "\033[1;33m⚠️ Root partition full, the system may not boot! Run system cleanup now? [Y/n] \033[0m" >&2
         read -r clean_answer
         if [[ -z "$clean_answer" || "$clean_answer" == [yY] ]]; then
             archcleanup
@@ -444,7 +458,7 @@ archupdate() {
         echo "$ver"
     done | sort -V | tail -n1)
     if [[ -n "$new_ver" ]]; then
-        printf "\033[1;33mKernel updated (%s -> %s). Reboot? [Y/n] \033[0m" "$running_ver" "$new_ver"
+        printf "\033[1;33mKernel updated (%s -> %s). Reboot now? [Y/n] \033[0m" "$running_ver" "$new_ver"
         read -r reboot_answer
         [[ -z "$reboot_answer" || "$reboot_answer" == [yY] ]] && plasmareboot # change this to your DE specific reboot code
     fi
@@ -452,17 +466,20 @@ archupdate() {
     # processes using stale shared libraries require a soft-reboot to reload system services
     local soft_reboot_answer
     if find /proc -maxdepth 2 -name maps 2>/dev/null | sudo xargs --no-run-if-empty grep -l '\.so.*deleted' 2>/dev/null | grep -q .; then
-        printf "\033[1;33mProcesses are using outdated shared libraries. Soft-reboot? [Y/n] \033[0m"
+        printf "\033[1;33mProcesses are using outdated shared libraries. Soft-reboot now? [Y/n] \033[0m"
         read -r soft_reboot_answer
         [[ -z "$soft_reboot_answer" || "$soft_reboot_answer" == [yY] ]] && systemctl soft-reboot
     fi
+
+    # logically a block would fit here, that would auto reload the desktop shell (without a logout) when a plasma (not even DE agnostic)
+    # widgets/applets get updated, but there is no universal way to scan for them. This shall remain a manual reload.
 
     # DE packages updated today, a logout/login is sufficient to reload the session
     local today de_packages logout_answer
     today=$(date +'%Y-%m-%d')
     de_packages='budgie-desktop|cinnamon|cosmic-session|deepin-session|enlightenment|gnome-shell|hyprland|i3-wm|labwc|lxqt-session|lxsession|mate-session-manager|niri|pantheon-session|plasma-desktop|plasma-workspace|river|sway|ukui-session-manager|wayfire|xfce4-session|xfwm4'
     if grep -qE "^\[$today.*\[ALPM\] upgraded.*($de_packages)" /var/log/pacman.log; then
-        printf "\033[1;33mDesktop environment packages updated. Log out and back in? [Y/n] \033[0m"
+        printf "\033[1;33mDesktop environment packages updated. Log out and back in now? [Y/n] \033[0m"
         read -r logout_answer
         [[ -z "$logout_answer" || "$logout_answer" == [yY] ]] && plasmalogout # change this to your DE specific logout code
     fi
@@ -489,26 +506,34 @@ archupdate() {
 
 # Remove a package, its orphaned dependencies, and anything that depends on it
 purge() {
-    local purge_answer
-    printf "\n\033[1;31m  ⚠  PURGE: %s ?\033[0m\n" "$*"
-    printf "\033[1;31m  This will also remove any package that depends on it, and orphaned dependencies left behind.\033[0m\n"
+    local purge_answer confirm_answer
+    printf "\n\033[1;31m  ⚠ PURGE: %s ?\033[0m\n" "$*"
+    printf "\033[1;31m  This will also remove any package that depends on it, and any orphaned dependencies left behind.\033[0m\n"
     printf "\033[1m  Proceed? [y/N] \033[0m"
     read -r purge_answer
-    [[ "$purge_answer" == [yY] ]] && yay -Rnsc "$@" || printf "\n  Purge cancelled.\n\n"
+    if [[ "$purge_answer" == [yY] ]]; then
+        printf "\033[1;31m  Are you doubly sure? This cannot be undone! [y/N] \033[0m"
+        read -r confirm_answer
+        [[ "$confirm_answer" == [yY] ]] && yay -Rnsc "$@" && return
+    fi
+    printf "\n  Purge cancelled.\n\n"
 }
 
 # Plasma, no dialog; defined as functions so they can be called from scripts,
-# in the kernel and DE blocks of archupdate, aliased shorhand commands
+# in the kernel and DE blocks of archupdate and aliased shorthand commands
 plasmashutdown() { qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logoutAndShutdown; }
 plasmalogout()   { qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout; }
 plasmareboot()   { qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logoutAndReboot; }
 
+
+################
 #   Bindings   #
 ################
 
-# Ctrl + C to freeze a running terminal program, Ctrl + Q to unfreeze
+# Ctrl + V is reserved for literal next readline binding. eg: Ctrl + V + Tab inserts a tab instead of completion
+# Ctrl + S to freeze a running terminal program, Ctrl + Q to unfreeze
 
-#    text manipulation/ getting around - get a better description, handling? navigation?
+#    text manipulation/ navigation
 bind '"\C-H":unix-word-rubout'       # Ctrl + Backspace/H deletes the previous word
 bind '"\e[3;5~": kill-word'          # Ctrl + Delete deletes the next word
 bind '"\e[1;5D": backward-word'      # Ctrl + Left moves one word left
@@ -529,6 +554,7 @@ bind '"\C-i": menu-complete'                   # Tab cycles forward through matc
 bind '"\e[Z": menu-complete-backward'          # Shift + Tab to cycle backwards
 
 
+#####################
 #   Look and feel   #
 #####################
 
@@ -554,19 +580,21 @@ trap '
 # add other internal commands to the case statement if you see them in your title, use regex/wildcards to match more patterns if needed
 
 
-#   Bash copmletions   #
+########################
+#   Bash completions   #
 ########################
 
 # load bash-completion if available and readable
 [[ -r "/usr/share/bash-completion/bash_completion" ]] && . "/usr/share/bash-completion/bash_completion"
 
 # doas completion (requiring bash-completion)
-complete -F _root_command doas   # or _command for basic behavior
-#complete -cf doas # fallback for no bash-copmletion
+# complete -F _root_command doas   # or _command for basic behavior
+# complete -cf doas # fallback for no bash-completion
 complete -c purge
 complete -c yay
 
 
+###############
 #   Aliases   #
 ###############
 
@@ -621,6 +649,7 @@ alias scrcpy='scrcpy --video-codec=h265 --max-fps=60 --turn-screen-off --stay-aw
 alias scrcam='scrcpy --video-source=camera --camera-size=1920x1080 --camera-facing=front --v4l2-sink=/dev/video2 --no-playback'
 
 #     remote scripts
-alias we='curl wttr.in'   # weather, stormy could be a local alternative
+# gui widget: https://github.com/pnedyalkov91/advanced-weather-widget
+alias we='curl wttr.in'   # weather
 alias lin='curl -fsSL https://christitus.com/linux | sh'
 alias lindev='curl -fsSL https://christitus.com/linuxdev | sh'
