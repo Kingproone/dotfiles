@@ -236,38 +236,48 @@ mirrorranking() {
     printf "\033[1;32m✅ Mirror ranking complete.\033[0m\n"
 }
 
+# green for 0 packages (up to date), blue for any pending — singular for exactly 1
+print_count() {
+    local n=$1 word color
+    [[ $n -eq 1 ]] && word="package" || word="packages"
+    [[ $n -eq 0 ]] && color="\033[1;32m" || color="\033[1;34m"
+    printf "${color}→ %d %s\033[0m\n" "$n" "$word"
+}
+
 # list available updates if the source is used
 availableupdates() {
     local official_count=0 chaotic_count=0 aur_count=0 flat_count=0 appimage_count=0  # counters
 
     # gather all data upfront before any output
-    local updates official_pkgs chaotic_pkgs aur_pkgs
+    local updates official_pkgs chaotic_pkgs aur_pkgs aur_installed flatpak_apps
     updates=$(checkupdates 2>/dev/null)
     official_pkgs=$(pacman -Sl core extra multilib endeavouros 2>/dev/null | awk '{print $2}')
     chaotic_pkgs=$(pacman -Sl chaotic-aur 2>/dev/null | awk '{print $2}')
     aur_pkgs=$(yay -Quq --aur 2>/dev/null)
+    aur_installed=$(pacman -Qm 2>/dev/null)
+    command -v flatpak &>/dev/null && flatpak_apps=$(flatpak list --app 2>/dev/null)
 
     printf "\033[1;34m→ Official updates:\033[0m\n"
     official_count=$(grep -Fwf <(printf '%s\n' "$official_pkgs") <<< "$updates" | grep -Fwvf <(printf '%s\n' "$chaotic_pkgs") | tee /dev/tty | wc -l)
-    printf "\033[1;34m→ %d package(s)\033[0m\n" "$official_count"
+    print_count "$official_count"
 
     # if a package is available through both an official channel and chaotic, it will be listed here, cantfix, count is correct tho
     if [[ -n "$chaotic_pkgs" ]]; then
         printf "\n\033[1;34m→ Chaotic-AUR updates:\033[0m\n"
         chaotic_count=$(grep -Fwf <(printf '%s\n' "$chaotic_pkgs") <<< "$updates" | tee /dev/tty | wc -l)
-        printf "\033[1;34m→ %d package(s)\033[0m\n" "$chaotic_count"
+        print_count "$chaotic_count"
     fi
 
-    if [[ -n "$aur_pkgs" ]]; then
+    if [[ -n "$aur_installed" ]]; then
         printf "\n\033[1;34m→ AUR updates:\033[0m\n"
-        aur_count=$(printf "%s\n" "$aur_pkgs" | tee /dev/tty | wc -l)
-        printf "\033[1;34m→ %d package(s)\033[0m\n" "$aur_count"
+        aur_count=$(printf "%s\n" "$aur_pkgs" | grep -v '^$' | tee /dev/tty | wc -l)
+        print_count "$aur_count"
     fi
 
-    if command -v flatpak &>/dev/null && flatpak list --app 2>/dev/null | grep -q .; then
+    if [[ -n "$flatpak_apps" ]]; then
         printf "\n\033[1;34m→ Flatpak updates:\033[0m\n"
         flat_count=$(flatpak remote-ls --updates 2>/dev/null | tee /dev/tty | wc -l)
-        printf "\033[1;34m→ %d package(s)\033[0m\n" "$flat_count"
+        print_count "$flat_count"
     fi
 
     local appimage_output
@@ -276,23 +286,28 @@ availableupdates() {
         if [[ "$appimage_output" != *"No installed apps"* ]]; then
             printf "\n\033[1;34m→ AppImage updates:\033[0m\n"
             appimage_count=$(printf "%s\n" "$appimage_output" | grep -v "All apps up to date" | tee /dev/tty | wc -l)
-            printf "\033[1;34m→ %d package(s)\033[0m\n" "$appimage_count"
+            print_count "$appimage_count"
         fi
     fi
 
-    local total installed percent update_color
+    local total
     total=$(( official_count + chaotic_count + aur_count + flat_count + appimage_count ))
-    installed=$(( $(pacman -Qq 2>/dev/null | wc -l) + $(flatpak list --app 2>/dev/null | wc -l) ))
-    percent=$(awk "BEGIN {printf \"%.2f\", $total / $installed * 100}")
-    if   (( $(awk "BEGIN {print ($percent >= 35)}") )); then
-        update_color="\033[1;31m"       # red
-    elif (( $(awk "BEGIN {print ($percent >= 15)}") )); then
-        update_color="\033[38;5;208m"   # orange
-    else
-        update_color="\033[1;33m"       # yellow
-    fi
 
-    printf "\n${update_color}→ Total updates available: %d (~%s%%)\033[0m\n" "$total" "$percent"
+    if [[ $total -eq 0 ]]; then
+        printf "\n\033[1;32m→ You are up to date! 🍹\033[0m\n"
+    else
+        local installed percent update_color total_word flatpak_count
+        flatpak_count=$(printf '%s\n' "$flatpak_apps" | grep -v '^$' | wc -l)
+        installed=$(( $(pacman -Qq 2>/dev/null | wc -l) + flatpak_count ))
+        percent=$(awk "BEGIN {printf \"%.2f\", $total / $installed * 100}")
+        update_color=$(awk "BEGIN {
+            if ($percent >= 35)      print \"\033[1;31m\"
+            else if ($percent >= 15) print \"\033[38;5;208m\"
+            else                     print \"\033[1;33m\"
+        }")
+        [[ $total -eq 1 ]] && total_word="package" || total_word="packages"
+        printf "\n${update_color}→ Total updates available: %d %s (~%s%%)\033[0m\n" "$total" "$total_word" "$percent"
+    fi
 }
 
 # gui alternative: https://github.com/Seafoam-Labs/Shelly-ALPM
@@ -345,7 +360,7 @@ archupdate() {
     if [[ -f "$mirror_check" ]]; then
         mirror_age=$(( ($(date +%s) - $(stat -c %Y "$mirror_check")) / 86400 ))
         if [[ $mirror_age -gt 14 ]]; then
-            printf "\033[1;33m⚠️ Mirrorlist is %d days old. Rank all mirrors now? [Y/n] \033[0m" "$mirror_age"
+            printf "\033[1;33m⚠️ Mirrorlists are %d days old. Rank all mirrors now? [Y/n] \033[0m" "$mirror_age"
             read -r mirror_answer
             [[ -z "$mirror_answer" || "$mirror_answer" == [yY] ]] && mirrorranking
         fi
@@ -506,15 +521,29 @@ archupdate() {
 
 # Remove a package, its orphaned dependencies, and anything that depends on it
 purge() {
-    local purge_answer confirm_answer
+    local purge_answer confirm_answer would_remove reinstall_cmd
     printf "\n\033[1;31m  ⚠ PURGE: %s ?\033[0m\n" "$*"
     printf "\033[1;31m  This will also remove any package that depends on it, and any orphaned dependencies left behind.\033[0m\n"
+
+    # dry run to capture the full removal list before asking
+    would_remove=$(yay -Rsc --print "$@" 2>/dev/null | awk '{print $1}' | grep -v '^$')
+    if [[ -n "$would_remove" ]]; then
+        printf "\033[1;31m  Would remove:\033[0m\n"
+        printf "\033[1;31m    %s\033[0m\n" $would_remove
+    fi
+
     printf "\033[1m  Proceed? [y/N] \033[0m"
     read -r purge_answer
     if [[ "$purge_answer" == [yY] ]]; then
-        printf "\033[1;31m  Are you doubly sure? This cannot be undone! [y/N] \033[0m"
+        printf "\033[1;31m  Are you doubly sure? This cannot be easily undone! [y/N] \033[0m"
         read -r confirm_answer
-        [[ "$confirm_answer" == [yY] ]] && yay -Rnsc "$@" && return
+        if [[ "$confirm_answer" == [yY] ]]; then
+            yay -Rnsc "$@"
+            reinstall_cmd="yay -S $(printf '%s\n' $would_remove | tr '\n' ' ')"
+            printf "\n\033[1;33m  To reinstall everything that was removed:\033[0m\n"
+            printf "\033[1m  %s\033[0m\n\n" "$reinstall_cmd"
+            return
+        fi
     fi
     printf "\n  Purge cancelled.\n\n"
 }
