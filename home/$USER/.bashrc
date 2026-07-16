@@ -2,41 +2,31 @@
 #   /home/$USER/.bashrc   #
 ###########################
 
+#  Legend:
+#  Command on terminal spawn, Basic functions, Exports, Functions, Bindings, Look and feel, Bash completions, Aliases
+
 #  Packages used, install for the full functionality:
-#
-#    htop (aliased for system monitoring) use whatever *top you like
-#      sudo pacman -S htop
-#
-#    pacman-contrib  (checkupdates, paccache)
-#      sudo pacman -S pacman-contrib
-#
-#    rate-mirrors  (mirror ranking)
-#      sudo pacman -S rate-mirrors
-#
-#    fzf  (fuzzy package search aliases)
-#      sudo pacman -S fzf
-#
-#    termdown  (td/tdh aliases)
-#      sudo pacman -S termdown
-#
-#    scrcpy  (scrcpy/scrcam aliases)
-#      sudo pacman -S scrcpy
+#    htop (or any *top you like) - system monitor
+#    pacman-contrib              - checkupdates, paccache
+#    rate-mirrors                - mirror ranking
+#    fzf                         - fuzzy package search aliases
+#    termdown                    - td/tdh aliases
+#    scrcpy                      - scrcpy/scrcam aliases
+#    psmisc                      - fuser, used in archupdate's lock check
+#    yay                         - AUR helper, used throughout
+#       sudo pacman -S htop pacman-contrib rate-mirrors fzf termdown scrcpy psmisc
+#       yay: preinstalled on EndeavourOS; on CachyOS/vanilla Arch install separately or adapt the scripts
 
 #  Optional, features silently skip if not installed:
-#
-#    flatpak
-#      sudo pacman -S flatpak
-#
-#    appmanager  (appimage updates)
-#      in the aur or chaotic-aur
-#
-#    topgrade, instead of yay and flatpak separately
+#    flatpak    - sudo pacman -S flatpak
+#    appmanager - appimage updates, AUR/chaotic-aur only
+#    topgrade   - AUR/chaotic-aur, alternative to running yay + flatpak separately
+#    fastfetch  - terminal info on spawn, sudo pacman -S fastfetch
 
 #  Typically preinstalled, verify with `pacman -Q <pkg>`
-#
 #    EndeavourOS: yay, bash-completion
-#    CachyOS:     fastfetch, paru (install yay separately if needed or adapt the scripts)
-#    Both:        curl, git (via base-devel)
+#    CachyOS:     fastfetch, Shelly (install yay separately or adapt the scripts)
+#    Both:        curl, git (via base-devel), sudo
 
 #  Plasma-specific:
 #
@@ -58,9 +48,9 @@
 #   if the comment or the command is very long/ multi line, put the command before it, otherwise same line
 
 
-############################################
-#   Command to autorun on terminal spawn   #
-############################################
+#################################
+#   Command on terminal spawn   #
+#################################
 
 command -v fastfetch &>/dev/null && fastfetch
 
@@ -110,6 +100,123 @@ export XDG_CACHE_HOME="$HOME/.cache"
 #   Functions   #
 #################
 
+# based on: https://github.com/ChrisTitusTech/mybash/issues/44 - auto update
+# pull the latest .bashrc from GitHub, diff it against the local copy, and
+# offer to back up, replace, and reload, never overwrites blindly
+bashup() {
+    local repo_owner="Kingproone" repo_name="dotfiles" repo_branch="main"
+    local repo_raw_url="https://raw.githubusercontent.com/$repo_owner/$repo_name/$repo_branch/home/%24USER/.bashrc"
+    local commits_api_url="https://api.github.com/repos/$repo_owner/$repo_name/commits?path=home/%24USER/.bashrc&sha=$repo_branch&per_page=30"
+    local sha_cache="$XDG_STATE_HOME/.bashup-sha"
+    local body_indent="            "
+    local temp_file commits_json
+    temp_file=$(mktemp)
+    trap 'rm -f "$temp_file"' RETURN
+
+    printf "\033[1;34mChecking for a newer .bashrc on GitHub...\033[0m\n"
+    commits_json=$(curl -s --connect-timeout 5 --max-time 10 "$commits_api_url" 2>/dev/null)
+
+    # parse commit SHAs (top-level, 4-space indent - excludes nested tree/parent SHAs),
+    # author dates (3 lines after each top-level "author": { - skips committer's date,
+    # which sits at the same indentation and would otherwise double the match count),
+    # and the full message split into a subject line plus indented body lines, if any
+    local -a remote_shas=() remote_dates=() remote_msgs=() remote_bodies=()
+    local full subject body
+    if [[ -n "$commits_json" ]]; then
+        while IFS= read -r sha; do remote_shas+=("$sha"); done \
+            < <(grep '^    "sha":' <<< "$commits_json" | grep -oP '(?<="sha": ")[a-f0-9]{40}')
+        while IFS= read -r iso_date; do
+            remote_dates+=("$(date -d "$iso_date" +%y.%m.%d 2>/dev/null)")
+        done < <(grep -A3 '"author": {' <<< "$commits_json" | grep -oP '(?<="date": ")[^"]+')
+        while IFS= read -r raw_msg; do
+            full=$(sed -E 's/^      "message": "//; s/",$//' <<< "$raw_msg")
+            full=$(sed -E 's/\\r\\n/\n/g; s/\\n/\n/g' <<< "$full")
+            subject="${full%%$'\n'*}"
+            if [[ "$full" == *$'\n\n'* ]]; then
+                body="${full#*$'\n\n'}"
+                body=$(sed '/^$/d' <<< "$body")
+            else
+                body=""
+            fi
+            remote_msgs+=("$subject")
+            remote_bodies+=("$body")
+        done < <(grep '^      "message":' <<< "$commits_json")
+    fi
+
+    local stored_sha=""
+    [[ -f "$sha_cache" ]] && stored_sha=$(<"$sha_cache")
+
+    if [[ ${#remote_shas[@]} -gt 0 && -n "$stored_sha" ]]; then
+        if [[ "${remote_shas[0]}" == "$stored_sha" ]]; then
+            printf "\033[1;32m✅ Already up to date.\033[0m\n"
+            return 0
+        fi
+        local i found=-1
+        for i in "${!remote_shas[@]}"; do
+            [[ "${remote_shas[$i]}" == "$stored_sha" ]] && { found=$i; break; }
+        done
+        if [[ $found -ge 0 ]]; then
+            printf "\033[1;33mNew commits since your last pull:\033[0m\n"
+            local j
+            for (( j=0; j<found; j++ )); do
+                printf " • %s: %s\n" "${remote_dates[$j]}" "${remote_msgs[$j]}"
+                if [[ -n "${remote_bodies[$j]}" ]]; then
+                    while IFS= read -r bline; do
+                        printf "%s%s\n" "$body_indent" "$bline"
+                    done <<< "${remote_bodies[$j]}"
+                fi
+            done
+        else
+            printf "\033[1;33mCould not place your version in recent history (older than fetched range, or history changed) - falling back to content comparison.\033[0m\n"
+        fi
+    elif [[ ${#remote_shas[@]} -gt 0 ]]; then
+        printf "\033[1;33mNo local version recorded yet - will track from this point on.\033[0m\n"
+    else
+        printf "\033[1;33mCould not reach the GitHub API for version info - falling back to content comparison.\033[0m\n"
+    fi
+
+    if ! curl -s --compressed --fail --connect-timeout 3 --max-time 8 --retry 2 --retry-delay 1 \
+        "$repo_raw_url" -o "$temp_file"; then
+        printf "\033[1;31mFailed to fetch - check connection or repo URL.\033[0m\n"
+        return 1
+    fi
+    if [[ ! -s "$temp_file" ]]; then
+        printf "\033[1;31mEmpty response - GitHub may be down or the path changed.\033[0m\n"
+        return 1
+    fi
+
+    if diff -q "$temp_file" "$HOME/.bashrc" &>/dev/null; then
+        printf "\033[1;32m✅ Already up to date.\033[0m\n"
+        return 0
+    fi
+
+    printf "\033[1;33mDifferences found:\033[0m\n"
+    diff -u --color=auto "$HOME/.bashrc" "$temp_file"
+
+    local upgrade_answer
+    printf "\033[1;33mUpgrade .bashrc? [Y/n] \033[0m"
+    read -r upgrade_answer
+    if [[ -n "$upgrade_answer" && "$upgrade_answer" != [yY] ]]; then
+        printf "\033[1m🚫 Upgrade cancelled.\033[0m\n"
+        return 0
+    fi
+
+    cp "$HOME/.bashrc" "$HOME/.bashrc.bak"
+    mv "$temp_file" "$HOME/.bashrc"
+    [[ -n "${remote_shas[0]:-}" ]] && { mkdir -p "$XDG_STATE_HOME"; printf '%s' "${remote_shas[0]}" > "$sha_cache"; }
+    printf "\033[1;32m✅ .bashrc updated. Backup saved to ~/.bashrc.bak\033[0m\n"
+
+    local reload_answer
+    printf "\033[1;33mReload now? [Y/n] \033[0m"
+    read -r reload_answer
+    if [[ -n "$reload_answer" && "$reload_answer" != [yY] ]]; then
+        printf "\033[1mNot reloading - run \`reload\` when ready.\033[0m\n"
+        return 0
+    fi
+    clear
+    source "$HOME/.bashrc"
+}
+
 # based on: https://github.com/ChrisTitusTech/linutil/blob/main/core/tabs/system-setup/system-cleanup.sh
 archcleanup() {
     # cache sudo credentials upfront to avoid mid-run prompts, no equivalent for doas
@@ -135,7 +242,7 @@ archcleanup() {
     printf "\033[1;34mChecking for orphaned packages...\033[0m\n"
     local orphans
     orphans=$(pacman -Qtdq 2>/dev/null)
-    [ -n "$orphans" ] && echo "$orphans" | sudo pacman -Rns - --noconfirm
+    [ -n "$orphans" ] && printf '%s\n' "$orphans" | sudo pacman -Rns - --noconfirm
 
     # corrupted or missing .git causes yay -Sc to bail
     printf "\033[1;34mRemoving broken yay AUR cache directories...\033[0m\n"
@@ -236,17 +343,17 @@ mirrorranking() {
     printf "\033[1;32m✅ Mirror ranking complete.\033[0m\n"
 }
 
-# green for 0 packages (up to date), blue for any pending — singular for exactly 1
-print_count() {
-    local n=$1 word color
-    [[ $n -eq 1 ]] && word="package" || word="packages"
-    [[ $n -eq 0 ]] && color="\033[1;32m" || color="\033[1;34m"
-    printf "${color}→ %d %s\033[0m\n" "$n" "$word"
-}
-
 # list available updates if the source is used
 availableupdates() {
     local official_count=0 chaotic_count=0 aur_count=0 flat_count=0 appimage_count=0  # counters
+
+    # green for 0 packages (up to date), blue for any pending - singular for exactly 1
+    print_count() {
+        local n=$1 word color
+        [[ $n -eq 1 ]] && word="package" || word="packages"
+        [[ $n -eq 0 ]] && color="\033[1;32m" || color="\033[1;34m"
+        printf "${color}→ %d %s\033[0m\n" "$n" "$word"
+    }
 
     # gather all data upfront before any output
     local updates official_pkgs chaotic_pkgs aur_pkgs aur_installed flatpak_apps
@@ -296,9 +403,9 @@ availableupdates() {
     if [[ $total -eq 0 ]]; then
         printf "\n\033[1;32m→ You are up to date! 🍹\033[0m\n"
     else
-        local installed percent update_color total_word flatpak_count
-        flatpak_count=$(printf '%s\n' "$flatpak_apps" | grep -v '^$' | wc -l)
-        installed=$(( $(pacman -Qq 2>/dev/null | wc -l) + flatpak_count ))
+        local installed percent update_color total_word flatpak_installed_count
+        flatpak_installed_count=$(printf '%s\n' "$flatpak_apps" | grep -v '^$' | wc -l)
+        installed=$(( $(pacman -Qq 2>/dev/null | wc -l) + flatpak_installed_count ))
         percent=$(awk "BEGIN {printf \"%.2f\", $total / $installed * 100}")
         update_color=$(awk "BEGIN {
             if ($percent >= 35)      print \"\033[1;31m\"
@@ -337,7 +444,7 @@ archupdate() {
     local item_blocks item link pubdate date_short
     printf "\033[1;34m📰 Latest Arch Linux news:\033[0m\n"
     # description text is entity-escaped (&lt;p&gt;) so no stray </item> tags appear inside
-    # a block — safe to collapse newlines first, then extract each <item>...</item> intact
+    # a block - safe to collapse newlines first, then extract each <item>...</item> intact
     item_blocks=$(curl -s --compressed --fail --connect-timeout 3 --max-time 8 --retry 2 --retry-delay 1 \
         https://archlinux.org/feeds/news/ 2>/dev/null \
         | tr -d '\r\n' | grep -oP '<item>.*?</item>' | head -n 2)
@@ -470,7 +577,7 @@ archupdate() {
         ver=${d%/}; ver=${ver##*/}
         [[ "$ver" == "$running_ver" ]] && continue
         [[ -z "$kernel_pkg" || "$(cat "${d}pkgbase" 2>/dev/null)" == "$kernel_pkg" ]] || continue
-        echo "$ver"
+        printf '%s\n' "$ver"
     done | sort -V | tail -n1)
     if [[ -n "$new_ver" ]]; then
         printf "\033[1;33mKernel updated (%s -> %s). Reboot now? [Y/n] \033[0m" "$running_ver" "$new_ver"
@@ -682,3 +789,4 @@ alias scrcam='scrcpy --video-source=camera --camera-size=1920x1080 --camera-faci
 alias we='curl wttr.in'   # weather
 alias lin='curl -fsSL https://christitus.com/linux | sh'
 alias lindev='curl -fsSL https://christitus.com/linuxdev | sh'
+alias shup='bashup'       # update this .bashrc from GitHub
