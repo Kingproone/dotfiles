@@ -102,19 +102,22 @@ export XDG_CACHE_HOME="$HOME/.cache"
 
 # based on: https://github.com/ChrisTitusTech/mybash/issues/44 - auto update
 # tracks .bashrc versions via GitHub commit history so local edits ahead of upstream
-# never trigger a false "update available" prompt — see inline comments below for
+# never trigger a false "update available" prompt - see inline comments below for
 # the bootstrap/tracking logic. Always backs up before replacing, never overwrites blindly.
+# A new commit will take a few minutes to propagate to githubs cdns.
 bashup() {
+    # change the below details to use for your own repo
     local repo_owner="Kingproone" repo_name="dotfiles" repo_branch="main"
     local repo_raw_url="https://raw.githubusercontent.com/$repo_owner/$repo_name/$repo_branch/home/%24USER/.bashrc"
     local commits_api_url="https://api.github.com/repos/$repo_owner/$repo_name/commits?path=home/%24USER/.bashrc&sha=$repo_branch&per_page=30"
+
     local sha_cache="$XDG_STATE_HOME/bashup-sha"
     local body_indent="            "
     local temp_file commits_json
     temp_file=$(mktemp)
     trap 'rm -f "$temp_file"' RETURN
 
-    # persist current HEAD as the new baseline — used from three call sites below
+    # persist current HEAD as the new baseline - used from three call sites below
     # (bootstrap, content-match, and accepted-upgrade), kept in one place so they
     # can't silently drift out of sync with each other
     save_sha() {
@@ -126,8 +129,8 @@ bashup() {
     printf "\033[1;34mChecking for a newer .bashrc on GitHub...\033[0m\n"
     commits_json=$(curl -s --connect-timeout 5 --max-time 10 "$commits_api_url" 2>/dev/null)
 
-    # parse commit SHAs (top-level, 4-space indent — excludes nested tree/parent SHAs),
-    # author dates (3 lines after each top-level "author": { — skips committer's date,
+    # parse commit SHAs (top-level, 4-space indent - excludes nested tree/parent SHAs),
+    # author dates (3 lines after each top-level "author": { - skips committer's date,
     # which sits at the same indentation and would otherwise double the match count),
     # and the full message split into a subject line plus indented body lines, if any
     local -a remote_shas=() remote_dates=() remote_msgs=() remote_bodies=()
@@ -156,7 +159,7 @@ bashup() {
     local stored_sha=""
     [[ -f "$sha_cache" ]] && stored_sha=$(<"$sha_cache")
 
-    # first run ever — nothing to compare against yet, so just record current HEAD as the
+    # first run ever - nothing to compare against yet, so just record current HEAD as the
     # baseline and stop here. local content is irrelevant to this: bootstrapping only means
     # "start tracking from now," not "local matches remote"
     if [[ ${#remote_shas[@]} -gt 0 && -z "$stored_sha" ]]; then
@@ -186,23 +189,23 @@ bashup() {
                 fi
             done
         else
-            printf "\033[1;33mCould not place your version in recent history (older than fetched range, or history changed) — falling back to content comparison.\033[0m\n"
+            printf "\033[1;33mCould not place your version in recent history (older than fetched range, or history changed) - falling back to content comparison.\033[0m\n"
         fi
     else
-        printf "\033[1;33mCould not reach the GitHub API for version info — falling back to content comparison.\033[0m\n"
+        printf "\033[1;33mCould not reach the GitHub API for version info - falling back to content comparison.\033[0m\n"
     fi
 
     if ! curl -s --compressed --fail --connect-timeout 3 --max-time 8 --retry 2 --retry-delay 1 \
         "$repo_raw_url" -o "$temp_file"; then
-        printf "\033[1;31mFailed to fetch — check connection or repo URL.\033[0m\n"
+        printf "\033[1;31mFailed to fetch - check connection or repo URL.\033[0m\n"
         return 1
     fi
     if [[ ! -s "$temp_file" ]]; then
-        printf "\033[1;31mEmpty response — GitHub may be down or the path changed.\033[0m\n"
+        printf "\033[1;31mEmpty response - GitHub may be down or the path changed.\033[0m\n"
         return 1
     fi
 
-    # content genuinely matches byte-for-byte — even without commit history to confirm it,
+    # content genuinely matches byte-for-byte - even without commit history to confirm it,
     # or if history said we were behind but bytes disagree, trust the bytes and (re)sync
     # the baseline so future runs can use the fast SHA-comparison path
     if diff -q "$temp_file" "$HOME/.bashrc" &>/dev/null; then
@@ -231,7 +234,7 @@ bashup() {
     printf "\033[1;33mReload now? [Y/n] \033[0m"
     read -r reload_answer
     if [[ -n "$reload_answer" && "$reload_answer" != [yY] ]]; then
-        printf "\033[1mNot reloading — run \`reload\` when ready.\033[0m\n"
+        printf "\033[1mNot reloading - run \`reload\` when ready.\033[0m\n"
         return 0
     fi
     clear
