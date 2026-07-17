@@ -811,6 +811,3 @@ alias we='curl wttr.in'   # weather
 alias lin='curl -fsSL https://christitus.com/linux | sh'
 alias lindev='curl -fsSL https://christitus.com/linuxdev | sh'
 alias shup='bashup'       # update this .bashrc from GitHub
-
-# opencode
-export PATH=/home/endeavour/.opencode/bin:$PATH
